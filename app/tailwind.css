@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --space-cadet: #1b1b3aff;
+  --finn: #693668ff;
+  --magenta-haze: #a74482ff;
+  --brilliant-rose: #f84aa7ff;
+  --folly: #ff3562ff;
+}
+
+a.pending {
+  color: var(--space-cadet) !important;
+}
+
+a.active {
+  color: var(--folly) !important;
+}
