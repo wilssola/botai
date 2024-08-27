@@ -1,6 +1,6 @@
 import { MetaFunction } from "@remix-run/node";
 import { json, Link } from "@remix-run/react";
-import { APP_NAME } from "~/consts";
+import { APP_NAME } from "~/constants";
 
 export const loader = () => {
   return json(null, { status: 404 });

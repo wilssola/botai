@@ -1,5 +1,5 @@
 import { Link } from "@remix-run/react";
-import { APP_NAME } from "~/consts";
+import { APP_NAME } from "~/constants";
 
 export default function Hero() {
   return (

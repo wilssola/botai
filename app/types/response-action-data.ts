@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 
-export type RequestError = ZodError & {
+export type ResponseActionData = {
   message: string;
+  error?: ZodError;
 };

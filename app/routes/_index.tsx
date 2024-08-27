@@ -1,7 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import Banner from "~/components/Banner";
 import Header from "~/components/Header";
-import { APP_NAME } from "~/consts";
+import { APP_NAME } from "~/constants";
 import Hero from "../components/Hero";
 
 export const meta: MetaFunction = () => {

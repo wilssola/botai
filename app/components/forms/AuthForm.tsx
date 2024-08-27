@@ -1,15 +1,15 @@
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Form, Link } from "@remix-run/react";
-import { MIN_PASSWORD_LENGTH } from "~/consts";
+import { MIN_PASSWORD_LENGTH } from "~/constants";
 import { FORGOT_PASSWORD_PATH, LOGIN_PATH, REGISTER_PATH } from "~/routes";
-import { RequestError } from "~/types/error";
+import { ResponseActionData } from "~/types/response-action-data";
 import AuthInput from "../inputs/AuthInput";
 import Logo from "../Logo";
 
 type AuthFormProps = {
   mode: "login" | "register";
-  hcaptchaSiteKey: string;
-  actionData?: RequestError;
+  hcaptchaSiteKey?: string;
+  actionData?: ResponseActionData;
 };
 
 export default function AuthForm(props: AuthFormProps) {
@@ -19,7 +19,7 @@ export default function AuthForm(props: AuthFormProps) {
         <div className="mx-auto h-10 w-auto flex justify-center items-center">
           <Logo />
         </div>
-        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+        <h2 className="mt-10 text-center text-2xl font-semibold leading-9 tracking-tight text-gray-900">
           {props.mode === "login" ? "Acesse sua conta" : "Crie sua conta"}
         </h2>
       </div>
@@ -52,8 +52,8 @@ export default function AuthForm(props: AuthFormProps) {
               name="password"
               type="password"
               label="Senha"
-              linkPath={FORGOT_PASSWORD_PATH}
-              linkText="Esqueceu sua senha?"
+              linkPath={props.mode === "login" ? FORGOT_PASSWORD_PATH : null}
+              linkText={props.mode === "login" ? "Esqueceu sua senha?" : null}
               placeholder="Digite sua senha"
               required={true}
               minLength={MIN_PASSWORD_LENGTH}
@@ -68,13 +68,17 @@ export default function AuthForm(props: AuthFormProps) {
               {props.mode === "login" ? "Logar" : "Cadastrar"}
             </button>
 
-            <div className="flex items-center justify-center mt-5">
-              <HCaptcha sitekey={props.hcaptchaSiteKey} />
-            </div>
+            {props.hcaptchaSiteKey && (
+              <div className="flex items-center justify-center mt-5">
+                <HCaptcha sitekey={props.hcaptchaSiteKey} />
+              </div>
+            )}
           </div>
 
           {props.actionData?.message && (
-            <p className="text-red-500 text-sm">{props.actionData.message}</p>
+            <p className="text-center text-red-500 text-sm">
+              {props.actionData.message}
+            </p>
           )}
         </Form>
 

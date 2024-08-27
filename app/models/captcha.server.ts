@@ -5,11 +5,16 @@ export async function verifyHCaptcha(
   clientResponse: string,
   remoteIp: string | null
 ) {
-  const params = new URLSearchParams();
-  params.append("response", clientResponse);
-  params.append("secret", process.env.HCAPTCHA_SECRET || "");
-  params.append("remoteip", remoteIp ?? "");
-  params.append("sitekey", process.env.HCAPTCHA_SITEKEY || "");
+  if (process.env.NODE_ENV !== "production" || !process.env.HCAPTCHA_SECRET) {
+    return true;
+  }
+
+  const params = new URLSearchParams({
+    response: clientResponse,
+    secret: process.env.HCAPTCHA_SECRET || "",
+    remoteip: remoteIp ?? "",
+    sitekey: process.env.HCAPTCHA_SITEKEY || "",
+  });
 
   const response = await fetch(HCAPTCHA_ENDPOINT, {
     method: "POST",

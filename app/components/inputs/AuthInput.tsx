@@ -11,8 +11,8 @@ type AuthInputProps = {
   type: HTMLInputTypeAttribute;
   label?: string;
   placeholder?: string;
-  linkPath?: string;
-  linkText?: string;
+  linkPath?: string | null;
+  linkText?: string | null;
   autoComplete?: HTMLInputAutoCompleteAttribute;
   required?: boolean;
   minLength?: number;

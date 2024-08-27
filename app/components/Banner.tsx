@@ -12,7 +12,7 @@ export default function Banner() {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <p className="text-sm leading-6 text-gray-900">
           <strong className="font-semibold">
-            Esse projeto é para um desafio de vaga na &nbsp;
+            Esse projeto é para um desafio de vaga na&nbsp;
             <Link
               to="https://gatewayfy.com"
               target="_blank"

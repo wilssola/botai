@@ -8,9 +8,17 @@ export async function createUserByCredentials({
   email,
   password,
 }: Pick<User, "username" | "email"> & { password: string }) {
+  const userExists = await db.user.findFirst({
+    where: { OR: [{ username }, { email }] },
+  });
+
+  if (userExists) {
+    return null;
+  }
+
   const passwordHash = await argon2.hash(password);
 
-  return db.user.create({
+  const user = await db.user.create({
     data: {
       username,
       email,
@@ -21,6 +29,8 @@ export async function createUserByCredentials({
       },
     },
   });
+
+  return user;
 }
 
 export async function getUserByCredentials({
@@ -46,9 +56,12 @@ export async function getUserByCredentials({
     password
   );
 
-  const userWithoutPassword = { ...userWithPassword } as Omit<User, "password">;
+  if (!passwordMatch) {
+    return null;
+  }
 
-  return passwordMatch ? userWithoutPassword : null;
+  const userWithoutPassword = { ...userWithPassword } as Omit<User, "password">;
+  return userWithoutPassword;
 }
 
 export async function getUserById(id: User["id"]) {

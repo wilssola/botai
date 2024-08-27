@@ -3,7 +3,11 @@ import { json, redirect, useActionData, useLoaderData } from "@remix-run/react";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { z as zod } from "zod";
 import AuthForm from "~/components/forms/AuthForm";
-import { HCAPTCHA_RESPONSE, MIN_PASSWORD_LENGTH } from "~/constants";
+import {
+  HCAPTCHA_RESPONSE,
+  MIN_PASSWORD_LENGTH,
+  MIN_USERNAME_LENGTH,
+} from "~/constants";
 import { HTTPStatus } from "~/enums/http-status";
 import { verifyHCaptcha } from "~/models/captcha.server";
 import { DASHBOARD_PATH } from "~/routes";
@@ -27,6 +31,7 @@ export const action: ActionFunction = async ({ request }) => {
   console.log(formPayload);
 
   const loginSchema = zod.object({
+    username: zod.string().trim().min(MIN_USERNAME_LENGTH),
     email: zod.string().trim().email(),
     password: zod.string().trim().min(MIN_PASSWORD_LENGTH),
     [HCAPTCHA_RESPONSE]: zod.string().trim().min(1),
@@ -41,11 +46,14 @@ export const action: ActionFunction = async ({ request }) => {
     );
 
     if (hCaptcha) {
-      const user = await auth.authenticate(AuthStrategies.FORM_LOGIN, request);
+      const user = await auth.authenticate(
+        AuthStrategies.FORM_REGISTER,
+        request
+      );
 
       if (!user) {
         return json(
-          { message: "Invalid credentials" },
+          { message: "Registration failed" },
           { status: HTTPStatus.UNAUTHORIZED }
         );
       }
@@ -65,13 +73,13 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-export default function Login() {
+export default function Register() {
   const { ENV } = useLoaderData<EnvLoaderData>() as EnvLoaderData;
   const actionData = useActionData<ResponseActionData>() as ResponseActionData;
 
   return (
     <AuthForm
-      mode="login"
+      mode="register"
       hcaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
       actionData={actionData}
     ></AuthForm>

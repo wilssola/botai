@@ -83,17 +83,6 @@ app.use(
 // Isso é necessário para que o Express possa obter corretamente o IP do cliente quando o aplicativo está atrás de um proxy reverso, por exemplo um balanceador de carga.
 app.set("trust proxy", 1);
 
-// Por questões de segurança, definir o uso do express-session para armazenar a sessão do usuário no servidor.
-/*
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-  })
-);
-*/
-
 // Ativar o gzip para compressão de pacotes enviados para o cliente.
 app.use(compression());
 
