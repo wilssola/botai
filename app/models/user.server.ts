@@ -95,7 +95,7 @@ export async function getUserByUsername(
 }
 
 export async function createUserEmailCodeById(userId: User["id"]) {
-  return db.user.update({
+  const user = await db.user.update({
     where: { id: userId },
     data: {
       mailAuth: {
@@ -104,7 +104,12 @@ export async function createUserEmailCodeById(userId: User["id"]) {
         },
       },
     },
+    include: {
+      mailAuth: true,
+    },
   });
+
+  return user.mailAuth;
 }
 
 export async function getUserEmailAuthById(userId: User["id"]) {

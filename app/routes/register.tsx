@@ -14,7 +14,7 @@ import {
 import { HCAPTCHA_RESPONSE } from "~/constants/params";
 import { HTTPStatus } from "~/enums/http-status";
 import { verifyHCaptcha } from "~/models/captcha.server";
-import { DASHBOARD_PATH, REGISTER_PATH } from "~/routes";
+import { DASHBOARD_PATH, REGISTER_PATH, VERIFY_EMAIL_PATH } from "~/routes";
 import { AuthStrategies } from "~/services/auth";
 import { auth } from "~/services/auth.server";
 import { createUserSession } from "~/services/session.server";
@@ -69,7 +69,7 @@ export const action: ActionFunction = async ({ request }) => {
         );
       }
 
-      return createUserSession(user, DASHBOARD_PATH);
+      return createUserSession(user, VERIFY_EMAIL_PATH);
     }
 
     return json(
@@ -92,14 +92,16 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Register() {
-  const { ENV } = useLoaderData<EnvLoaderData>() as EnvLoaderData;
-  const actionData = useActionData<ResponseActionData>() as ResponseActionData;
+  const { ENV } = useLoaderData<EnvLoaderData>();
+  const actionData = useActionData<ResponseActionData>();
 
   return (
-    <AuthForm
-      mode="register"
-      hcaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
-      actionData={actionData}
-    ></AuthForm>
+    <>
+      <AuthForm
+        mode="register"
+        hcaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
+        actionData={actionData}
+      ></AuthForm>
+    </>
   );
 }

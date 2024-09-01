@@ -5,7 +5,7 @@ import type {
 } from "@remix-run/node";
 import { json, useActionData, useLoaderData } from "@remix-run/react";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
-import { z as zod, ZodError } from "zod";
+import { z, ZodError } from "zod";
 import AuthForm from "~/components/forms/AuthForm";
 import { MIN_PASSWORD_LENGTH } from "~/constants/validation";
 import { HCAPTCHA_RESPONSE } from "~/constants/params";
@@ -32,10 +32,10 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.clone().formData();
   const formPayload = Object.fromEntries(formData);
 
-  const loginSchema = zod.object({
-    email: zod.string().trim().email(),
-    password: zod.string().trim().min(MIN_PASSWORD_LENGTH),
-    [HCAPTCHA_RESPONSE]: zod.string().trim().min(1),
+  const loginSchema = z.object({
+    email: z.string().trim().email(),
+    password: z.string().trim().min(MIN_PASSWORD_LENGTH),
+    [HCAPTCHA_RESPONSE]: z.string().trim().min(1),
   });
 
   try {
@@ -79,14 +79,16 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Login() {
-  const { ENV } = useLoaderData<EnvLoaderData>() as EnvLoaderData;
-  const actionData = useActionData<ResponseActionData>() as ResponseActionData;
+  const { ENV } = useLoaderData<EnvLoaderData>();
+  const actionData = useActionData<ResponseActionData>();
 
   return (
-    <AuthForm
-      mode="login"
-      hcaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
-      actionData={actionData}
-    ></AuthForm>
+    <>
+      <AuthForm
+        mode="login"
+        hcaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
+        actionData={actionData}
+      ></AuthForm>
+    </>
   );
 }

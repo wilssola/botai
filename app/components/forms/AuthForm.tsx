@@ -1,6 +1,9 @@
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Form, Link } from "@remix-run/react";
-import { MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH } from "~/constants/validation";
+import {
+  MIN_PASSWORD_LENGTH,
+  MIN_USERNAME_LENGTH,
+} from "~/constants/validation";
 import { FORGOT_PASSWORD_PATH, LOGIN_PATH, REGISTER_PATH } from "~/routes";
 import { ResponseActionData } from "~/types/response-action-data";
 import AuthInput from "../inputs/AuthInput";
