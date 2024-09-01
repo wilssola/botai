@@ -11,7 +11,7 @@ import { MIN_PASSWORD_LENGTH } from "~/constants/validation";
 import { HCAPTCHA_RESPONSE } from "~/constants/params";
 import { HTTPStatus } from "~/enums/http-status";
 import { verifyHCaptcha } from "~/models/captcha.server";
-import { DASHBOARD_PATH } from "~/routes";
+import { DASHBOARD_PATH, LOGIN_PATH } from "~/routes";
 import { AuthStrategies } from "~/services/auth";
 import { auth } from "~/services/auth.server";
 import { createUserSession } from "~/services/session.server";
@@ -20,7 +20,7 @@ import envLoader, { EnvLoaderData } from "~/utils/env-loader";
 import sessionLoader from "~/utils/session-loader";
 import { defaultMeta } from "~/utils/default-meta";
 
-export const meta: MetaFunction = () => defaultMeta("Login");
+export const meta: MetaFunction = () => defaultMeta("Login", LOGIN_PATH);
 
 export const loader: LoaderFunction = async ({ request }) => {
   await sessionLoader(request, { successRedirect: DASHBOARD_PATH });

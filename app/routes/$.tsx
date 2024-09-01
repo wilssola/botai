@@ -1,11 +1,14 @@
 import { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { json, Link } from "@remix-run/react";
 import { APP_NAME } from "~/constants";
+import { getCanonicalLink } from "~/utils/default-meta";
+import { HTTPStatus } from "~/enums/http-status";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: `${APP_NAME} | 404` },
+    { title: `${APP_NAME} | ${HTTPStatus.NOT_FOUND}` },
     { name: "description", content: `Página não encontrada` },
+    getCanonicalLink(`/${HTTPStatus.NOT_FOUND}`),
   ];
 };
 

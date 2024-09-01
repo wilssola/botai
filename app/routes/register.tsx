@@ -1,22 +1,29 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import type {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+} from "@remix-run/node";
 import { json, useActionData, useLoaderData } from "@remix-run/react";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import z from "zod";
 import AuthForm from "~/components/forms/AuthForm";
-import { MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH } from "~/constants/validation";
+import {
+  MIN_PASSWORD_LENGTH,
+  MIN_USERNAME_LENGTH,
+} from "~/constants/validation";
 import { HCAPTCHA_RESPONSE } from "~/constants/params";
 import { HTTPStatus } from "~/enums/http-status";
 import { verifyHCaptcha } from "~/models/captcha.server";
-import { DASHBOARD_PATH } from "~/routes";
+import { DASHBOARD_PATH, REGISTER_PATH } from "~/routes";
 import { AuthStrategies } from "~/services/auth";
 import { auth } from "~/services/auth.server";
 import { createUserSession } from "~/services/session.server";
 import { ResponseActionData } from "~/types/response-action-data";
 import envLoader, { EnvLoaderData } from "~/utils/env-loader";
 import sessionLoader from "~/utils/session-loader";
-import {defaultMeta} from "~/utils/default-meta";
+import { defaultMeta } from "~/utils/default-meta";
 
-export const meta = defaultMeta("Cadastro");
+export const meta: MetaFunction = () => defaultMeta("Cadastro", REGISTER_PATH);
 
 export const loader: LoaderFunction = async ({ request }) => {
   await sessionLoader(request, { successRedirect: DASHBOARD_PATH });

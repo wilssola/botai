@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { eventStream } from "remix-utils/sse/server";
 import { interval } from "remix-utils/timers";
 import { getUserSession } from "~/services/auth.server";
@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export const WHATSAPP_QR_SSE_EVENT = "whatsapp-qr";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   return eventStream(request.signal, function setup(send) {
     async function run() {
       const user = await getUserSession(request);
@@ -36,4 +36,4 @@ export async function loader({ request }: LoaderFunctionArgs) {
       // You can use it to clean up any resources or subscriptions that you might have created.
     };
   });
-}
+};

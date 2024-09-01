@@ -1,6 +1,7 @@
-import {User} from "@prisma/client";
+import { User } from "@prisma/client";
 import argon2 from "argon2";
-import {db, enhancedb} from "~/services/db.server";
+import { db, enhancedb } from "~/services/db.server";
+import { nanoid } from "nanoid";
 
 export type { Password, User } from "@prisma/client";
 
@@ -48,16 +49,13 @@ export async function getUserByForm({
     return null;
   }
 
-  const passwordVerify = await argon2.verify(
-    user.password.hash,
-    password
-  );
+  const passwordVerify = await argon2.verify(user.password.hash, password);
 
   if (!passwordVerify) {
     return null;
   }
 
-  return {...user} as Omit<User, "password">;
+  return { ...user } as Omit<User, "password">;
 }
 
 export async function getUserById(userId: User["id"], userRequest?: Request) {
@@ -70,7 +68,10 @@ export async function getUserById(userId: User["id"], userRequest?: Request) {
   return db.user.findUnique(query);
 }
 
-export async function getUserByEmail(email: User["email"], userRequest?: Request) {
+export async function getUserByEmail(
+  email: User["email"],
+  userRequest?: Request
+) {
   const query = { where: { email } };
 
   if (userRequest) {
@@ -91,6 +92,56 @@ export async function getUserByUsername(
   }
 
   return db.user.findUnique(query);
+}
+
+export async function createUserEmailCodeById(userId: User["id"]) {
+  return db.user.update({
+    where: { id: userId },
+    data: {
+      mailAuth: {
+        create: {
+          code: nanoid(),
+        },
+      },
+    },
+  });
+}
+
+export async function getUserEmailAuthById(userId: User["id"]) {
+  const query = {
+    where: { userId },
+  };
+
+  return db.mailAuth.findUnique(query);
+}
+
+export async function UpdateUserEmailAuthCodeById(userId: User["id"]) {
+  return db.user.update({
+    where: { id: userId },
+    data: {
+      mailAuth: {
+        update: {
+          code: nanoid(),
+        },
+      },
+    },
+  });
+}
+
+export async function UpdateUserEmailAuthVerifiedById(
+  userId: User["id"],
+  verified: boolean
+) {
+  return db.user.update({
+    where: { id: userId },
+    data: {
+      mailAuth: {
+        update: {
+          verified,
+        },
+      },
+    },
+  });
 }
 
 export async function updateUserById(
