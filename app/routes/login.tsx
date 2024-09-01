@@ -16,15 +16,15 @@ import { AuthStrategies } from "~/services/auth";
 import { auth } from "~/services/auth.server";
 import { createUserSession } from "~/services/session.server";
 import { ResponseActionData } from "~/types/response-action-data";
-import envLoader, { EnvLoaderData } from "~/utils/env-loader";
-import sessionLoader from "~/utils/session-loader";
+import envLoaderServer, { EnvLoaderData } from "~/utils/env-loader.server";
+import sessionLoaderServer from "~/utils/session-loader.server";
 import { defaultMeta } from "~/utils/default-meta";
 
 export const meta: MetaFunction = () => defaultMeta("Login", LOGIN_PATH);
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await sessionLoader(request, { successRedirect: DASHBOARD_PATH });
-  return await envLoader();
+  await sessionLoaderServer(request, { successRedirect: DASHBOARD_PATH });
+  return await envLoaderServer();
 };
 
 export const action: ActionFunction = async ({ request }) => {

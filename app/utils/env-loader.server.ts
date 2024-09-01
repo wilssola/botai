@@ -7,7 +7,7 @@ export type EnvLoaderData = {
 };
 
 // https://remix.run/docs/en/main/guides/envvars
-export default async function envLoader() {
+export default async function envLoaderServer() {
   return json({
     ENV: {
       HCAPTCHA_SITEKEY: process.env.HCAPTCHA_SITEKEY,
