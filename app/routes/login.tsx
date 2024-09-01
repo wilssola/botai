@@ -1,22 +1,29 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json, redirect, useActionData, useLoaderData } from "@remix-run/react";
+import type {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+} from "@remix-run/node";
+import { json, useActionData, useLoaderData } from "@remix-run/react";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
-import { z as zod } from "zod";
+import { z as zod, ZodError } from "zod";
 import AuthForm from "~/components/forms/AuthForm";
-import { HCAPTCHA_RESPONSE, MIN_PASSWORD_LENGTH } from "~/constants";
+import { MIN_PASSWORD_LENGTH } from "~/constants/validation";
+import { HCAPTCHA_RESPONSE } from "~/constants/params";
 import { HTTPStatus } from "~/enums/http-status";
 import { verifyHCaptcha } from "~/models/captcha.server";
 import { DASHBOARD_PATH } from "~/routes";
 import { AuthStrategies } from "~/services/auth";
 import { auth } from "~/services/auth.server";
+import { createUserSession } from "~/services/session.server";
 import { ResponseActionData } from "~/types/response-action-data";
 import envLoader, { EnvLoaderData } from "~/utils/env-loader";
+import sessionLoader from "~/utils/session-loader";
+import { defaultMeta } from "~/utils/default-meta";
+
+export const meta: MetaFunction = () => defaultMeta("Login");
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await auth.isAuthenticated(request, {
-    successRedirect: DASHBOARD_PATH,
-  });
-
+  await sessionLoader(request, { successRedirect: DASHBOARD_PATH });
   return await envLoader();
 };
 
@@ -24,7 +31,6 @@ export const action: ActionFunction = async ({ request }) => {
   // https://github.com/sergiodxa/remix-auth/issues/263
   const formData = await request.clone().formData();
   const formPayload = Object.fromEntries(formData);
-  console.log(formPayload);
 
   const loginSchema = zod.object({
     email: zod.string().trim().email(),
@@ -50,7 +56,7 @@ export const action: ActionFunction = async ({ request }) => {
         );
       }
 
-      return redirect(DASHBOARD_PATH);
+      return createUserSession(user, DASHBOARD_PATH);
     }
 
     return json(
@@ -58,9 +64,16 @@ export const action: ActionFunction = async ({ request }) => {
       { status: HTTPStatus.BAD_REQUEST }
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return json(
+        { message: "Parameters validation error", error: error.issues },
+        { status: HTTPStatus.BAD_REQUEST }
+      );
+    }
+
     return json(
-      { message: "Parameters validation error", error },
-      { status: HTTPStatus.BAD_REQUEST }
+      { message: "Internal server error" },
+      { status: HTTPStatus.INTERNAL_SERVER_ERROR }
     );
   }
 };

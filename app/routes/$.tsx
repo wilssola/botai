@@ -1,16 +1,16 @@
-import { MetaFunction } from "@remix-run/node";
+import { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { json, Link } from "@remix-run/react";
 import { APP_NAME } from "~/constants";
-
-export const loader = () => {
-  return json(null, { status: 404 });
-};
 
 export const meta: MetaFunction = () => {
   return [
     { title: `${APP_NAME} | 404` },
     { name: "description", content: `Página não encontrada` },
   ];
+};
+
+export const loader: LoaderFunction = () => {
+  return json(null, { status: 404 });
 };
 
 export default function $() {

@@ -1,10 +1,12 @@
 import { createRequestHandler } from "@remix-run/express";
+import { ServerBuild } from "@remix-run/node";
 import compression from "compression";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { slowDown } from "express-slow-down";
 import helmet from "helmet";
 import morgan from "morgan";
+import * as process from "node:process";
 
 const viteDevServer =
   process.env.NODE_ENV === "production"
@@ -17,11 +19,14 @@ const viteDevServer =
 
 const remixHandler = createRequestHandler({
   build: viteDevServer
-    ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
-    : await import("./build/server/index.js"),
+    ? () =>
+        viteDevServer.ssrLoadModule(
+          "virtual:remix/server-build"
+        ) as Promise<ServerBuild>
+    : ((await import("../build/server/index.js")) as unknown as ServerBuild),
 });
 
-const app = express();
+export const app = express();
 
 // Por questões de segurança, limitar o número de requisições por IP em um intervalo de tempo.
 app.use(
@@ -36,7 +41,7 @@ app.use(
 // Por questões de desempenho, retardar o tempo de resposta das requisições por IP em um intervalo de tempo.
 app.use(
   slowDown({
-    windowMs: 1 * 60 * 1000,
+    windowMs: 60 * 1000,
     delayAfter: 100,
     delayMs: (hits) => hits * 100,
   })
@@ -108,8 +113,3 @@ app.use(morgan("tiny"));
 
 // Handle SSR requests.
 app.all("*", remixHandler);
-
-const port = process.env.PORT || 3000;
-app.listen(port, () =>
-  console.log(`Express server listening at http://localhost:${port}`)
-);

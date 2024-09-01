@@ -1,15 +1,9 @@
-import type { MetaFunction } from "@remix-run/node";
 import Banner from "~/components/Banner";
 import Header from "~/components/Header";
-import { APP_NAME } from "~/constants";
+import {defaultMeta} from "~/utils/default-meta";
 import Hero from "../components/Hero";
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: `${APP_NAME} | Home` },
-    { name: "description", content: `Bem-vindo ao ${APP_NAME}` },
-  ];
-};
+export const meta = defaultMeta("Home");
 
 export default function Index() {
   return (

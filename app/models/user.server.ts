@@ -1,9 +1,10 @@
-import { User } from "@prisma/client";
+import {User} from "@prisma/client";
 import argon2 from "argon2";
-import db from "../db.server";
+import {db, enhancedb} from "~/services/db.server";
+
 export type { Password, User } from "@prisma/client";
 
-export async function createUserByCredentials({
+export async function createUserByForm({
   username,
   email,
   password,
@@ -11,14 +12,12 @@ export async function createUserByCredentials({
   const userExists = await db.user.findFirst({
     where: { OR: [{ username }, { email }] },
   });
-
   if (userExists) {
     return null;
   }
 
   const passwordHash = await argon2.hash(password);
-
-  const user = await db.user.create({
+  return await db.user.create({
     data: {
       username,
       email,
@@ -29,15 +28,13 @@ export async function createUserByCredentials({
       },
     },
   });
-
-  return user;
 }
 
-export async function getUserByCredentials({
+export async function getUserByForm({
   email,
   password,
 }: Pick<User, "email"> & { password: string }) {
-  const userWithPassword = await db.user.findUnique({
+  const user = await db.user.findUnique({
     where: { email },
     include: {
       password: true,
@@ -46,57 +43,82 @@ export async function getUserByCredentials({
 
   // Para prevenir ataques de tempo, calcular um hash inútil para evitar um invasor deduzir se o usuário existe ou não.
   // https://en.wikipedia.org/wiki/Timing_attack
-  if (!userWithPassword || !userWithPassword.password) {
+  if (!user || !user.password) {
     await argon2.hash(password);
     return null;
   }
 
-  const passwordMatch = await argon2.verify(
-    userWithPassword.password.hash,
+  const passwordVerify = await argon2.verify(
+    user.password.hash,
     password
   );
 
-  if (!passwordMatch) {
+  if (!passwordVerify) {
     return null;
   }
 
-  const userWithoutPassword = { ...userWithPassword } as Omit<User, "password">;
-  return userWithoutPassword;
+  return {...user} as Omit<User, "password">;
 }
 
-export async function getUserById(id: User["id"]) {
-  return await db.user.findUnique({
-    where: { id },
-  });
+export async function getUserById(userId: User["id"], userRequest?: Request) {
+  const query = { where: { id: userId } };
+
+  if (userRequest) {
+    return (await enhancedb(userRequest)).user.findUnique(query);
+  }
+
+  return db.user.findUnique(query);
 }
 
-export async function getUserByEmail(email: User["email"]) {
-  return await db.user.findUnique({
-    where: { email },
-  });
+export async function getUserByEmail(email: User["email"], userRequest?: Request) {
+  const query = { where: { email } };
+
+  if (userRequest) {
+    return (await enhancedb(userRequest)).user.findUnique(query);
+  }
+
+  return db.user.findUnique(query);
 }
 
-export async function getUserByUserName(username: User["username"]) {
-  return await db.user.findUnique({
-    where: { username },
-  });
+export async function getUserByUsername(
+  username: User["username"],
+  userRequest?: Request
+) {
+  const query = { where: { username } };
+
+  if (userRequest) {
+    return (await enhancedb(userRequest)).user.findUnique(query);
+  }
+
+  return db.user.findUnique(query);
 }
 
 export async function updateUserById(
-  id: User["id"],
-  updates: Partial<Omit<User, "password">>
+  userId: User["id"],
+  updates: Partial<Omit<User, "password">>,
+  userRequest?: Request
 ) {
-  return await db.user.update({
-    where: { id },
+  const query = {
+    where: { id: userId },
     data: updates,
-  });
+  };
+
+  if (userRequest) {
+    return await (await enhancedb(userRequest)).user.update(query);
+  }
+
+  return await db.user.update(query);
 }
 
-export async function updateUserPassword(id: User["id"], password: string) {
+export async function updateUserPasswordById(
+  userId: User["id"],
+  password: string,
+  userRequest?: Request
+) {
   const passwordHash = await argon2.hash(password);
 
-  return await db.user.update({
-    where: { id },
+  const query = {
+    where: { id: userId },
     data: {
       password: {
         update: {
@@ -104,11 +126,23 @@ export async function updateUserPassword(id: User["id"], password: string) {
         },
       },
     },
-  });
+  };
+
+  if (userRequest) {
+    return await (await enhancedb(userRequest)).user.update(query);
+  }
+
+  return await db.user.update(query);
 }
 
-export async function deleteUserById(id: User["id"]) {
-  return await db.user.delete({
-    where: { id },
-  });
+export async function deleteUserById(userId: string, userRequest?: Request) {
+  const query = {
+    where: { id: userId },
+  };
+
+  if (userRequest) {
+    return await (await enhancedb(userRequest)).user.delete(query);
+  }
+
+  return await db.user.delete(query);
 }

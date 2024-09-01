@@ -16,10 +16,21 @@ import {
   EnvelopeIcon,
   SparklesIcon,
 } from "@heroicons/react/20/solid";
-import { Bars3Icon, ShareIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  Bars3Icon,
+  ChatBubbleOvalLeftEllipsisIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { Link, NavLink } from "@remix-run/react";
 import { createElement, useState } from "react";
 import Logo from "./Logo";
+import {
+  FEATURES_PATH,
+  LOGIN_PATH,
+  PRICING_PATH,
+  PRODUCTS_PATH,
+  PRODUCTS_PATH_WHATSAPP_BOT,
+} from "~/routes";
 
 interface HeaderLink {
   name: string;
@@ -31,27 +42,27 @@ interface HeaderLink {
 const headerLinks: Omit<HeaderLink, "description">[] = [
   {
     name: "Produtos",
-    href: "/products",
+    href: PRODUCTS_PATH,
     icon: ChevronDownIcon,
   },
   {
     name: "Recursos",
-    href: "/features",
+    href: FEATURES_PATH,
     icon: SparklesIcon,
   },
   {
     name: "Preços",
-    href: "/pricing",
+    href: PRICING_PATH,
     icon: CreditCardIcon,
   },
 ];
 
 const productLinks: HeaderLink[] = [
   {
-    name: "Encurtador de Links",
-    description: "Encurte e analise o trafego de seus links",
-    href: "/products/link-shortener",
-    icon: ShareIcon,
+    name: "Bot para WhatsApp",
+    description: "Automatize seu negócio no WhatsApp",
+    href: PRODUCTS_PATH_WHATSAPP_BOT,
+    icon: ChatBubbleOvalLeftEllipsisIcon,
   },
 ];
 
@@ -63,7 +74,7 @@ const actionLinks: Omit<HeaderLink, "description">[] = [
 const authLinks: Omit<HeaderLink, "description">[] = [
   {
     name: "Logar",
-    href: "/login",
+    href: LOGIN_PATH,
     icon: EnvelopeIcon,
   },
 ];

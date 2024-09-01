@@ -1,6 +1,6 @@
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Form, Link } from "@remix-run/react";
-import { MIN_PASSWORD_LENGTH } from "~/constants";
+import { MIN_PASSWORD_LENGTH, MIN_USERNAME_LENGTH } from "~/constants/validation";
 import { FORGOT_PASSWORD_PATH, LOGIN_PATH, REGISTER_PATH } from "~/routes";
 import { ResponseActionData } from "~/types/response-action-data";
 import AuthInput from "../inputs/AuthInput";
@@ -35,6 +35,7 @@ export default function AuthForm(props: AuthFormProps) {
                 label="Usuário"
                 placeholder="Digite seu usuário"
                 required={true}
+                minLength={MIN_USERNAME_LENGTH}
               ></AuthInput>
             )}
 
@@ -58,6 +59,17 @@ export default function AuthForm(props: AuthFormProps) {
               required={true}
               minLength={MIN_PASSWORD_LENGTH}
             ></AuthInput>
+
+            {props.mode === "register" && (
+              <AuthInput
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Confirme sua senha"
+                required={true}
+                minLength={MIN_PASSWORD_LENGTH}
+              ></AuthInput>
+            )}
           </div>
 
           <div>
