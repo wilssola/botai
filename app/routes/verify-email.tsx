@@ -1,28 +1,33 @@
-import {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-  redirect,
-} from "@remix-run/node";
-import { getUserSession } from "~/services/auth.server";
-import { HTTPStatus } from "~/enums/http-status";
-import { DASHBOARD_PATH, LOGIN_PATH, VERIFY_EMAIL_PATH } from "~/routes";
+import {ActionFunction, LoaderFunction, MetaFunction, redirect,} from "@remix-run/node";
+import {getUserSession} from "~/services/auth.server";
+import {HTTPStatus} from "~/enums/http-status";
+import {DASHBOARD_PATH, LOGIN_PATH, VERIFY_EMAIL_PATH} from "~/routes";
 import {
   createUserEmailCodeById,
   getUserEmailAuthById,
   UpdateUserEmailAuthCodeById,
   UpdateUserEmailAuthVerifiedById,
 } from "~/models/user.server";
-import { defaultMeta } from "~/utils/default-meta";
+import {defaultMeta} from "~/utils/default-meta";
 import MailAuthForm from "~/components/forms/MailAuthForm";
-import { json, useActionData } from "@remix-run/react";
-import { ResponseActionData } from "~/types/response-action-data";
-import { z } from "zod";
-import { MAX_EMAIL_CODE_TIME } from "~/constants/validation";
+import {json, useActionData} from "@remix-run/react";
+import {ResponseActionData} from "~/types/response-action-data";
+import {z} from "zod";
+import {MAX_EMAIL_CODE_TIME} from "~/constants/validation";
 
+/**
+ * Meta function to set the default meta tags for the verify email page.
+ * @returns The meta tags for the verify email page.
+ */
 export const meta: MetaFunction = () =>
   defaultMeta("Verificar Email", VERIFY_EMAIL_PATH);
 
+/**
+ * Loader function to handle the initial data fetching for the verify email page.
+ * @param param0 - The request object.
+ * @param param0.request - The request object.
+ * @returns The response object or null.
+ */
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUserSession(request);
   if (!user) {
@@ -49,6 +54,12 @@ export const loader: LoaderFunction = async ({ request }) => {
   return null;
 };
 
+/**
+ * Action function to handle the form submission for verifying the email.
+ * @param param0 - The request object.
+ * @param param0.request - The request object.
+ * @returns The response object.
+ */
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.clone().formData();
   const formPayload = Object.fromEntries(formData);
@@ -94,6 +105,10 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
+/**
+ * Component to render the verify email page.
+ * @returns The verify email page component.
+ */
 export default function VerifyEmail() {
   const actionData = useActionData<ResponseActionData>();
 

@@ -1,6 +1,6 @@
 import { auth } from "~/services/auth.server";
 
-export default async function sessionLoaderServer(
+export default async function sessionLoader(
   request: Request,
   options: {
     successRedirect?: string;

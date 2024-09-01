@@ -8,13 +8,20 @@ const appUrl = process.env.APP_URL || "0.0.0.0";
 const port = process.env.PORT || 3000;
 const host = `http://${appUrl}:${port}`;
 
-// Create HTTP server from Express app
+/**
+ * Create HTTP server from Express app.
+ */
 const server = createServer(app);
 
-// Attach socket.io server to the HTTP server
+/**
+ * Attach socket.io server to the HTTP server.
+ */
 const io = new Server(server);
 
-function main() {
+/**
+ * Main function to start the server and handle WebSocket connections.
+ */
+async function main() {
   try {
     io.on("connection", async (socket) => {
       console.log(
@@ -33,18 +40,18 @@ function main() {
         console.log(`WebSocket connection closed with Client: ${socket.id}`);
       });
 
-      //bot(socket);
+      // bot(socket);
     });
-
-    bot();
 
     server.listen(port, () =>
       console.log(`[${APP_NAME}] Server listening at ${host}`)
     );
+
+    await bot();
   } catch (error) {
     console.error(`[${APP_NAME}] Server crashed`);
     throw error;
   }
 }
 
-main();
+await main();

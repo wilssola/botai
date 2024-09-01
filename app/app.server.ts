@@ -1,13 +1,16 @@
-import { createRequestHandler } from "@remix-run/express";
-import { ServerBuild } from "@remix-run/node";
+import {createRequestHandler} from "@remix-run/express";
+import {ServerBuild} from "@remix-run/node";
 import compression from "compression";
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { slowDown } from "express-slow-down";
+import {slowDown} from "express-slow-down";
 import helmet from "helmet";
 import morgan from "morgan";
 import * as process from "node:process";
 
+/**
+ * Creates a Vite development server if the environment is not production.
+ */
 const viteDevServer =
   process.env.NODE_ENV === "production"
     ? undefined
@@ -17,6 +20,9 @@ const viteDevServer =
         })
       );
 
+/**
+ * Creates a Remix request handler.
+ */
 const remixHandler = createRequestHandler({
   build: viteDevServer
     ? () =>
@@ -26,9 +32,14 @@ const remixHandler = createRequestHandler({
     : ((await import("../build/server/index.js")) as unknown as ServerBuild),
 });
 
+/**
+ * Express application instance.
+ */
 export const app = express();
 
-// Por questões de segurança, limitar o número de requisições por IP em um intervalo de tempo.
+/**
+ * For security reasons, limit the number of requests per IP in a time window.
+ */
 app.use(
   rateLimit({
     windowMs: 30 * 60 * 1000,
@@ -38,7 +49,9 @@ app.use(
   })
 );
 
-// Por questões de desempenho, retardar o tempo de resposta das requisições por IP em um intervalo de tempo.
+/**
+ * For performance reasons, slow down the response time of requests per IP in a time window.
+ */
 app.use(
   slowDown({
     windowMs: 60 * 1000,
@@ -47,8 +60,10 @@ app.use(
   })
 );
 
-// Por questões de segurança, definir o uso do helmet para proteger a aplicação de ataques de Cross-Site Scripting (XSS) e outros tipos de ataques.
-// O helmet é uma coleção de middleware que ajuda a proteger aplicações web contra ataques comuns web, fazendo uso do Content-Security-Policy (CSP).
+/**
+ * For security reasons, use helmet to protect the application from Cross-Site Scripting (XSS) and other types of attacks.
+ * Helmet is a collection of middleware that helps secure web applications by setting various HTTP headers.
+ */
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -60,20 +75,18 @@ app.use(
           "https://hcaptcha.com",
           "https://*.hcaptcha.com",
         ],
-
         "style-src": [
           "'self'",
           "'unsafe-inline'",
           "https://hcaptcha.com",
           "https://*.hcaptcha.com",
         ],
-
         "connect-src": [
           "'self'",
           "https://hcaptcha.com",
           "https://*.hcaptcha.com",
+          process.env.NODE_ENV !== "production" ? "ws://localhost:*" : "",
         ],
-
         "frame-src": [
           "'self'",
           "https://hcaptcha.com",
@@ -84,17 +97,26 @@ app.use(
   })
 );
 
-// Configurar o Express para confiar no primeiro proxy na cadeia de proxies reversos.
-// Isso é necessário para que o Express possa obter corretamente o IP do cliente quando o aplicativo está atrás de um proxy reverso, por exemplo um balanceador de carga.
+/**
+ * Configure Express to trust the first proxy in the chain of reverse proxies.
+ * This is necessary for Express to correctly obtain the client's IP when the application is behind a reverse proxy, such as a load balancer.
+ */
 app.set("trust proxy", 1);
 
-// Ativar o gzip para compressão de pacotes enviados para o cliente.
+/**
+ * Enable gzip compression for packages sent to the client.
+ */
 app.use(compression());
 
-// http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
+/**
+ * Disable the "X-Powered-By" header for security reasons.
+ * @see http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
+ */
 app.disable("x-powered-by");
 
-// Handle asset requests.
+/**
+ * Handle asset requests.
+ */
 if (viteDevServer) {
   app.use(viteDevServer.middlewares);
 } else {
@@ -105,11 +127,18 @@ if (viteDevServer) {
   );
 }
 
-// Everything else (like favicon.ico) is cached for an hour. You may want to be more aggressive with this caching.
+/**
+ * Cache everything else (like favicon.ico) for an hour.
+ * You may want to be more aggressive with this caching.
+ */
 app.use(express.static("build/client", { maxAge: "24h" }));
 
-// Por questões, principalmente de desempenho, mas também de segurança, minificar o código front-end enviar para o cliente.
+/**
+ * For performance and security reasons, minify the front-end code sent to the client.
+ */
 app.use(morgan("tiny"));
 
-// Handle SSR requests.
+/**
+ * Handle SSR requests.
+ */
 app.all("*", remixHandler);

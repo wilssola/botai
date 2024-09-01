@@ -11,8 +11,18 @@ import { io } from "socket.io-client";
 import { SocketProvider } from "./context";
 import "./tailwind.css";
 
+export { envLoader as loader } from "~/utils/env-loader.server";
+
+/**
+ * Layout component that wraps the application content.
+ *
+ * @param {{ children: React.ReactNode }} props - The props for the Layout component.
+ * @returns {JSX.Element} The rendered Layout component.
+ */
 export function Layout({ children }: { children: React.ReactNode }) {
-  // https://github.com/remix-run/remix/issues/3192
+  /**
+   * @see https://github.com/remix-run/remix/issues/3192
+   */
   const [jsEnabled, setJsEnabled] = useState(false);
 
   useEffect(() => setJsEnabled(true), []);
@@ -34,6 +44,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Main application component.
+ *
+ * @returns {JSX.Element} The rendered App component.
+ */
 export default function App() {
   const [socket, setSocket] = useState<Socket>();
 
