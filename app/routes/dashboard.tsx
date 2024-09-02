@@ -32,7 +32,11 @@ export default function Dashboard() {
 
   return (
     <>
-      <QRCode value={whatsappQr ?? ""} logoImage="/whatsapp.png"></QRCode>
+      <QRCode
+        value={whatsappQr ?? ""}
+        logoImage="/whatsapp.png"
+        removeQrCodeBehindLogo={true}
+      ></QRCode>
     </>
   );
 }
