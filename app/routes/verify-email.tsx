@@ -41,7 +41,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   if (mailAuth!.verified) {
-    return redirect(DASHBOARD_PATH, HTTPStatus.OK);
+    return redirect(DASHBOARD_PATH);
   }
 
   if (mailAuth!.updatedAt.getTime() + MAX_EMAIL_CODE_TIME < Date.now()) {
