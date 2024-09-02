@@ -8,8 +8,11 @@ import { WHATSAPP_QR_SSE_EVENT } from "~/routes/sse.whatsapp-qr";
 import { QRCode } from "react-qrcode-logo";
 import { getUserSession } from "~/services/auth.server";
 import { getUserMailAuthById } from "~/models/user.server";
+import sessionLoader from "~/utils/session-loader.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
+  await sessionLoader(request, { failureRedirect: LOGIN_PATH });
+
   const user = await getUserSession(request);
   if (!user) {
     return redirect(LOGIN_PATH);
