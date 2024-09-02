@@ -1,17 +1,17 @@
-import {LoaderFunction, redirect} from "@remix-run/node";
+import {LoaderFunction} from "@remix-run/node";
 import React, {useEffect} from "react";
 import {useEventSource} from "remix-utils/sse/react";
 import {useSocket} from "~/context";
 import {LOGIN_PATH, WHATSAPP_QR_SSE_PATH} from "~/routes";
 import {envLoader} from "~/utils/env-loader.server";
 import {WHATSAPP_QR_SSE_EVENT} from "~/routes/sse.whatsapp-qr";
-import {QRCode} from "react-qrcode-logo";
 import {getUserSession} from "~/services/auth.server";
 import {checkMailAuthVerified} from "~/models/mail.server";
 import {useLoaderData} from "@remix-run/react";
 import Header from "~/components/dashboard/Header";
 import {createBotSessionByUserId, getBotSessionByUserId,} from "~/models/bot.server";
-import {HTTPStatus} from "~/enums/http-status";
+import sessionLoader from "~/utils/session-loader.server";
+import {QRCodeCanvas} from "qrcode.react";
 
 /**
  * Loader function to handle the initial data fetching for the dashboard page.
@@ -24,14 +24,12 @@ export const loader: LoaderFunction = async ({
 }: {
   request: Request;
 }): Promise<object> => {
-  const user = await getUserSession(request);
-  if (!user) {
-    return redirect(LOGIN_PATH, HTTPStatus.UNAUTHORIZED);
-  }
+  await sessionLoader(request, { failureRedirect: LOGIN_PATH });
 
   await checkMailAuthVerified(request);
 
   const env = await envLoader();
+  const user = await getUserSession(request);
 
   let botSession = await getBotSessionByUserId(user!.id);
   if (!botSession || !botSession.state) {
@@ -69,7 +67,11 @@ export default function Dashboard(): React.ReactElement {
 
       <main>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <QRCode value={whatsappQr ?? ""} logoImage="/whatsapp.png"></QRCode>
+          <QRCodeCanvas
+            value={whatsappQr ?? ""}
+            title="WhatsApp QRCode"
+          ></QRCodeCanvas>
+          {whatsappQr}
         </div>
       </main>
     </>

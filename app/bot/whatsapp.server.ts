@@ -4,11 +4,12 @@ import { MongoStore } from "wwebjs-mongo";
 import { mongodb } from "../services/db.server";
 
 export class WhatsAppSession {
+  private initialized: boolean = false;
   private qrCode: string = "";
   private readonly sessionId: string = "";
 
-  private readonly options: whatsapp.ClientOptions;
-  private client: whatsapp.Client;
+  private options: whatsapp.ClientOptions | undefined;
+  private client: whatsapp.Client | undefined;
 
   private readonly onQRCodeGenerated: (qr: string) => void;
   private readonly onClientReady: () => void;
@@ -20,49 +21,34 @@ export class WhatsAppSession {
   ) {
     this.sessionId = sessionId;
 
+    this.onQRCodeGenerated = onQRCodeGenerated;
+    this.onClientReady = onClientReady;
+  }
+
+  async initialize() {
+    const mongoose = await mongodb();
+
     this.options = {
       puppeteer: {
         headless: true,
-        args: ["--no-sandbox"],
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
       },
       authStrategy: new whatsapp.RemoteAuth({
-        store: new MongoStore({ mongoose: mongodb }),
+        store: new MongoStore({ mongoose }),
         backupSyncIntervalMs: 300000,
       }),
     };
 
     this.client = new whatsapp.Client(this.options);
 
-    this.onQRCodeGenerated = onQRCodeGenerated;
-    this.onClientReady = onClientReady;
-    this.registerEventHandlers();
-
-    this.client.initialize().then(() => console.log(`WhatsApp client initialized for session: ${this.sessionId}`));
-  }
-
-  private registerEventHandlers() {
-    this.client.on("qr", (qr) => {
-      this.qrCode = qr;
-
-      if (process.env.NODE_ENV !== "production") {
-        qrcode.generate(qr, { small: true });
-      }
-
-      this.onQRCodeGenerated(qr);
-    });
-
-    this.client.on("ready", () => {
-      console.log(`WhatsApp client is ready on session: ${this.sessionId}`);
-      this.onClientReady();
-    });
-
-    this.client.on("disconnected", () => {});
-
-    this.client.on("message", (message) => {
-      if (message.body.includes("Oi")) {
-        this.client.sendMessage(message.from, "Olá!");
-      }
-    });
+    try {
+      await this.client.initialize();
+      this.initialized = true;
+      this.registerEventHandlers();
+      console.log(`WhatsApp client initialized for session: ${this.sessionId}`);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   getSessionId() {
@@ -78,17 +64,58 @@ export class WhatsAppSession {
   }
 
   async restartClient() {
+    if (!this.initialized) {
+      return;
+    }
+
     await this.killClient();
 
-    this.client = new whatsapp.Client(this.options);
+    this.client = new whatsapp.Client(this.options!);
 
     this.registerEventHandlers();
 
-    this.client.initialize().then(() => console.log(`WhatsApp client restarted for session: ${this.sessionId}`));
+    this.client
+      .initialize()
+      .then(() =>
+        console.log(`WhatsApp client restarted for session: ${this.sessionId}`)
+      );
   }
 
   async killClient() {
-    await this.client.destroy();
+    if (!this.initialized) {
+      return;
+    }
+
+    await this.client!.destroy();
+  }
+
+  private registerEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+
+    this.client!.on("qr", (qr) => {
+      this.qrCode = qr;
+
+      if (process.env.NODE_ENV !== "production") {
+        qrcode.generate(qr, { small: true });
+      }
+
+      this.onQRCodeGenerated(qr);
+    });
+
+    this.client!.on("ready", () => {
+      console.log(`WhatsApp client is ready on session: ${this.sessionId}`);
+      this.onClientReady();
+    });
+
+    this.client!.on("disconnected", () => {});
+
+    this.client!.on("message", (message) => {
+      if (message.body.includes("Oi")) {
+        this.client!.sendMessage(message.from, "Olá!");
+      }
+    });
   }
 }
 
@@ -99,12 +126,14 @@ class WhatsAppManager {
     return this;
   }
 
-  createClient(
+  async createClient(
     sessionId: string,
     qrCallback: (qr: string) => void,
     readyCallback: () => void
   ) {
     const session = new WhatsAppSession(sessionId, qrCallback, readyCallback);
+
+    await session.initialize();
 
     this.sessions[sessionId] = session;
 

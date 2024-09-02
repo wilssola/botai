@@ -66,14 +66,23 @@ model MailAuth {
 /// @@allow('update', auth().id == user.id && user.mailAuth.verified == true)
 model BotSession {
   id         String       @id() @default(dbgenerated("gen_random_uuid()"))
-  enabled    Boolean
+  enabled    Boolean      @default(true)
   whatsappQr String?
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt()
+  state      BotState?
   commands   BotCommand[]
   userId     String       @unique()
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  state      BotState?
+}
+
+model BotState {
+  id        String     @id() @default(dbgenerated("gen_random_uuid()"))
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt()
+  status    BotStatus  @default(OFFLINE)
+  sessionId String     @unique()
+  session   BotSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 /// @@allow('all', auth().id == session.userId && session.user.mailAuth.verified == true)
@@ -94,13 +103,4 @@ model BotCommand {
 
   @@unique([input, sessionId])
   @@unique([priority, sessionId])
-}
-
-model BotState {
-  id        String     @id() @default(dbgenerated("gen_random_uuid()"))
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt()
-  status    BotStatus  @default(OFFLINE)
-  sessionId String     @unique()
-  session   BotSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }

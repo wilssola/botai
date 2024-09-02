@@ -8,32 +8,22 @@ import {
 import { db, enhancedb } from "~/services/db.server";
 
 export async function createBotSessionByUserId(userId: User["id"]) {
-  const user = await db.user.update({
-    where: {
-      id: userId,
-    },
+  return await db.botSession.create({
     data: {
-      botSession: {
+      enabled: true,
+      state: {
         create: {
-          enabled: true,
-          state: {
-            create: {
-              status: BotStatus.OFFLINE,
-            },
-          },
+          status: BotStatus.OFFLINE,
         },
+      },
+      user: {
+        connect: { id: userId },
       },
     },
     include: {
-      botSession: {
-        include: {
-          state: true,
-        },
-      },
+      state: true,
     },
   });
-
-  return user.botSession;
 }
 
 export async function getBotSessionByUserId(userId: string, userReq?: Request) {

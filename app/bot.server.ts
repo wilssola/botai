@@ -75,7 +75,7 @@ async function startBot(bot: BotState, socket?: Socket): Promise<void> {
   console.log(`Starting bot: ${bot.id}`);
 
   try {
-    whatsappManager.createClient(
+    await whatsappManager.createClient(
       bot.sessionId,
       (qr: string) => {
         updateBotSessionById(bot.sessionId, { whatsappQr: qr });

@@ -95,21 +95,14 @@ export async function getUserByUsername(
 }
 
 export async function createUserMailAuthCodeById(userId: User["id"]) {
-  const user = await db.user.update({
-    where: { id: userId },
+  return await db.mailAuth.create({
     data: {
-      mailAuth: {
-        create: {
-          code: nanoid(),
-        },
+      code: nanoid(),
+      user: {
+        connect: { id: userId },
       },
     },
-    include: {
-      mailAuth: true,
-    },
   });
-
-  return user.mailAuth;
 }
 
 export async function getUserMailAuthById(userId: User["id"]) {

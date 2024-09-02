@@ -6,6 +6,8 @@ import { getBotSessionByUserId } from "~/models/bot.server";
 
 export const WHATSAPP_QR_SSE_EVENT = "whatsapp-qr";
 
+const WHATSAPP_QR_RESET_INTERVAL = 20 * 1000;
+
 export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   return eventStream(request.signal, function setup(send) {
     async function run() {
@@ -20,7 +22,9 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      for await (const _ of interval(1500, { signal: request.signal })) {
+      for await (const _ of interval(WHATSAPP_QR_RESET_INTERVAL, {
+        signal: request.signal,
+      })) {
         send({
           event: WHATSAPP_QR_SSE_EVENT,
           data: session?.whatsappQr ?? "",
