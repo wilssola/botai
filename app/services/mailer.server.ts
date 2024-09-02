@@ -17,13 +17,17 @@ export async function sendMail(
   text: string,
   html: string
 ) {
-  const mail = await mailer.sendMail({
-    from: `<${process.env.MAIL_USER}>`,
-    to,
-    subject,
-    text,
-    html,
-  });
+  try {
+    const mail = await mailer.sendMail({
+      from: `<${process.env.MAIL_USER}>`,
+      to,
+      subject,
+      text,
+      html,
+    });
 
-  console.log(`Mail sent: ${mail.messageId}`);
+    console.log(`Mail sent: ${mail.messageId}`);
+  } catch (error) {
+    console.error(`Error sending mail: ${error}`);
+  }
 }

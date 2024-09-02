@@ -94,7 +94,7 @@ export async function getUserByUsername(
   return db.user.findUnique(query);
 }
 
-export async function createUserEmailCodeById(userId: User["id"]) {
+export async function createUserMailAuthCodeById(userId: User["id"]) {
   const user = await db.user.update({
     where: { id: userId },
     data: {
@@ -112,7 +112,7 @@ export async function createUserEmailCodeById(userId: User["id"]) {
   return user.mailAuth;
 }
 
-export async function getUserEmailAuthById(userId: User["id"]) {
+export async function getUserMailAuthById(userId: User["id"]) {
   const query = {
     where: { userId },
   };
@@ -120,8 +120,8 @@ export async function getUserEmailAuthById(userId: User["id"]) {
   return db.mailAuth.findUnique(query);
 }
 
-export async function UpdateUserEmailAuthCodeById(userId: User["id"]) {
-  return db.user.update({
+export async function updateUserMailAuthCodeById(userId: User["id"]) {
+  const user = await db.user.update({
     where: { id: userId },
     data: {
       mailAuth: {
@@ -130,10 +130,15 @@ export async function UpdateUserEmailAuthCodeById(userId: User["id"]) {
         },
       },
     },
+    include: {
+      mailAuth: true,
+    },
   });
+
+  return user.mailAuth;
 }
 
-export async function UpdateUserEmailAuthVerifiedById(
+export async function updateUserEmailAuthVerifiedById(
   userId: User["id"],
   verified: boolean
 ) {

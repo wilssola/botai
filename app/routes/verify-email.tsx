@@ -3,10 +3,10 @@ import {getUserSession} from "~/services/auth.server";
 import {HTTPStatus} from "~/enums/http-status";
 import {DASHBOARD_PATH, LOGIN_PATH, VERIFY_EMAIL_PATH} from "~/routes";
 import {
-  createUserEmailCodeById,
-  getUserEmailAuthById,
-  UpdateUserEmailAuthCodeById,
-  UpdateUserEmailAuthVerifiedById,
+  createUserMailAuthCodeById,
+  getUserMailAuthById,
+  updateUserEmailAuthVerifiedById,
+  updateUserMailAuthCodeById,
 } from "~/models/user.server";
 import {defaultMeta} from "~/utils/default-meta";
 import MailAuthForm from "~/components/forms/MailAuthForm";
@@ -14,6 +14,8 @@ import {json, useActionData} from "@remix-run/react";
 import {ResponseActionData} from "~/types/response-action-data";
 import {z} from "zod";
 import {MAX_EMAIL_CODE_TIME} from "~/constants/validation";
+import {sendMail} from "~/services/mailer.server";
+import {APP_NAME} from "~/constants";
 
 /**
  * Meta function to set the default meta tags for the verify email page.
@@ -34,21 +36,24 @@ export const loader: LoaderFunction = async ({ request }) => {
     return redirect(LOGIN_PATH, HTTPStatus.UNAUTHORIZED);
   }
 
-  let emailCode = await getUserEmailAuthById(user.id);
-  if (!emailCode) {
-    emailCode = await createUserEmailCodeById(user.id);
+  let mailAuth = await getUserMailAuthById(user.id);
+  if (!mailAuth) {
+    mailAuth = await createUserMailAuthCodeById(user.id);
   }
 
-  if (!emailCode) {
-    return redirect(LOGIN_PATH, HTTPStatus.UNAUTHORIZED);
-  }
-
-  if (emailCode.verified) {
+  if (mailAuth!.verified) {
     return redirect(DASHBOARD_PATH, HTTPStatus.OK);
   }
 
-  if (emailCode.updatedAt.getTime() + MAX_EMAIL_CODE_TIME < Date.now()) {
-    await UpdateUserEmailAuthCodeById(user.id);
+  if (mailAuth!.updatedAt.getTime() + MAX_EMAIL_CODE_TIME < Date.now()) {
+    mailAuth = await updateUserMailAuthCodeById(user.id);
+
+    await sendMail(
+      user.email,
+      `${APP_NAME} | Código de verificação`,
+      `Seu código de verificação é: ${mailAuth!.code}`,
+      `Seu código de verificação é: <strong>${mailAuth!.code}</strong>`
+    );
   }
 
   return null;
@@ -76,7 +81,7 @@ export const action: ActionFunction = async ({ request }) => {
       return redirect(LOGIN_PATH, HTTPStatus.UNAUTHORIZED);
     }
 
-    const mailAuth = await getUserEmailAuthById(user.id);
+    const mailAuth = await getUserMailAuthById(user.id);
     if (!mailAuth) {
       return redirect(LOGIN_PATH, HTTPStatus.UNAUTHORIZED);
     }
@@ -88,7 +93,7 @@ export const action: ActionFunction = async ({ request }) => {
       );
     }
 
-    await UpdateUserEmailAuthVerifiedById(user.id, true);
+    await updateUserEmailAuthVerifiedById(user.id, true);
     return redirect(DASHBOARD_PATH);
   } catch (error) {
     if (error instanceof z.ZodError) {

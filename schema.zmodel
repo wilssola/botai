@@ -50,6 +50,7 @@ model Password {
 }
 
 model MailAuth {
+    id        String   @id @default(dbgenerated("gen_random_uuid()"))
     code      String
     verified  Boolean  @default(false)
     createdAt DateTime @default(now())

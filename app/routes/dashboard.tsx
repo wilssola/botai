@@ -1,15 +1,25 @@
-import { LoaderFunction } from "@remix-run/node";
+import { LoaderFunction, redirect } from "@remix-run/node";
 import { useEffect } from "react";
 import { useEventSource } from "remix-utils/sse/react";
 import { useSocket } from "~/context";
-import { LOGIN_PATH, WHATSAPP_QR_SSE_PATH } from "~/routes";
+import { LOGIN_PATH, VERIFY_EMAIL_PATH, WHATSAPP_QR_SSE_PATH } from "~/routes";
 import { envLoader } from "~/utils/env-loader.server";
-import sessionLoader from "~/utils/session-loader.server";
 import { WHATSAPP_QR_SSE_EVENT } from "~/routes/sse.whatsapp-qr";
 import { QRCode } from "react-qrcode-logo";
+import { getUserSession } from "~/services/auth.server";
+import { getUserMailAuthById } from "~/models/user.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await sessionLoader(request, { failureRedirect: LOGIN_PATH });
+  const user = await getUserSession(request);
+  if (!user) {
+    return redirect(LOGIN_PATH);
+  }
+
+  const mailAuth = await getUserMailAuthById(user.id);
+  if (!mailAuth || !mailAuth.verified) {
+    return redirect(VERIFY_EMAIL_PATH);
+  }
+
   return await envLoader();
 };
 
@@ -32,11 +42,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <QRCode
-        value={whatsappQr ?? ""}
-        logoImage="/whatsapp.png"
-        removeQrCodeBehindLogo={true}
-      ></QRCode>
+      <QRCode value={whatsappQr ?? ""} logoImage="/whatsapp.png"></QRCode>
     </>
   );
 }
