@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "npm run db-generate && remix vite:build",
-    "dev": "tsx ./server.ts",
+    "dev": "npm run db-generate && tsx ./server.ts",
     "start": "npm run build && cross-env NODE_ENV=production tsx ./server.ts",
     "docker": "npm run db-push && npm run start",
     "docs": "typedoc server.ts ./app/**/*.ts ./app/**/*.tsx",
@@ -45,7 +45,7 @@
     "mongoose": "^8.6.0",
     "morgan": "^1.10.0",
     "nanoid": "^5.0.7",
-    "nodemailer": "^6.9.14",
+    "nodemailer": "^6.9.13",
     "openai": "^4.57.0",
     "prisma": "^5.18.0",
     "qrcode-terminal": "^0.12.0",
