@@ -1,14 +1,43 @@
-import { BotCommand, BotSession, BotState, BotStatus } from "@prisma/client";
-import { db, enhancedb } from "../services/db.server";
+import {
+  BotCommand,
+  BotSession,
+  BotState,
+  BotStatus,
+  User,
+} from "@prisma/client";
+import { db, enhancedb } from "~/services/db.server";
 
-export async function createBotSession(session: BotSession) {
-  return await db.botSession.create({
-    data: session,
+export async function createBotSessionByUserId(userId: User["id"]) {
+  const user = await db.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      botSession: {
+        create: {
+          enabled: true,
+          state: {
+            create: {
+              status: BotStatus.OFFLINE,
+            },
+          },
+        },
+      },
+    },
+    include: {
+      botSession: {
+        include: {
+          state: true,
+        },
+      },
+    },
   });
+
+  return user.botSession;
 }
 
-export async function getBotSessionById(sessionId: string, userReq?: Request) {
-  const query = { where: { id: sessionId } };
+export async function getBotSessionByUserId(userId: string, userReq?: Request) {
+  const query = { where: { userId }, include: { state: true } };
 
   if (userReq) {
     return (await enhancedb(userReq)).botSession.findUnique(query);
@@ -17,8 +46,8 @@ export async function getBotSessionById(sessionId: string, userReq?: Request) {
   return db.botSession.findUnique(query);
 }
 
-export async function getBotSessionByUserId(userId: string, userReq?: Request) {
-  const query = { where: { userId } };
+export async function getBotSessionById(sessionId: string, userReq?: Request) {
+  const query = { where: { id: sessionId } };
 
   if (userReq) {
     return (await enhancedb(userReq)).botSession.findUnique(query);

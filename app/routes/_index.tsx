@@ -10,9 +10,9 @@ export const meta: MetaFunction = () => defaultMeta("Home", HOME_PATH);
 export default function Index() {
   return (
     <>
-      <Header></Header>
-      <Banner></Banner>
-      <Hero></Hero>
+      <Header />
+      <Banner />
+      <Hero />
     </>
   );
 }

@@ -1,5 +1,4 @@
-import "./instrumentation.server.mjs";
-
+import "./instrumentation.server";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { bot } from "~/bot.server";

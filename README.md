@@ -70,10 +70,9 @@ Para fazer o deploy da aplicação no Fly, usando uma build do Docker feita na n
 fly deploy --ha=false
 ```
 
-#### Configurando o PostgresSQL
+#### Configurando o PostgresSQL [Saiba mais](https://fly.io/docs/postgres/connecting/connecting-external/)
 
 Para alocar um IP público e permitir conexões externas com o PostgresSQL:
-[Saiba mais](https://fly.io/docs/postgres/connecting/connecting-external/)
 
 ```sh
 fly ips allocate-v6 --app <pg-app-name>
@@ -85,18 +84,23 @@ Para se conectar diretamente ao PostgresSQL no Fly:
 fly pg connect --app <pg-app-name>
 ```
 
-Ou:
+Ou, caso tenha o PostgresSQL instalado na sua máquina, você pode se conectar diretamente ao PostgresSQL no Fly.
+Para isso é necessário rodar um proxy localmente:
+
+```sh
+fly proxy 6432:5432 --app botai-db
+```
+
+E então, você pode se conectar ao PostgresSQL no Fly:
 
 ```sh
 psql "sslmode=require host=<pg-app-name>.fly.dev dbname=<db-name> user=<username> password=<password>"
 ```
 
-#### Configurando o Prisma Pulse
+#### Configurando o Prisma Pulse [Saiba mais](https://www.prisma.io/docs/pulse/database-setup/general-database-instructions)
 
-Para o Prisma Pulse funcionar corretamente, é necessário configurar o PostgresSQL no Fly:
-[Saiba mais](https://www.prisma.io/docs/pulse/database-setup/general-database-instructions)
-
-Verifique se o `wal_level` do PostgresSQL no Fly está configurado para `logical`:
+Para o Prisma Pulse funcionar corretamente, é necessário configurar o PostgresSQL no Fly.
+Primeiro, verifique se o `wal_level` do PostgresSQL no Fly está configurado para `logical`:
 
 ```sh
 fly postgres config show --app <pg-app-name>
