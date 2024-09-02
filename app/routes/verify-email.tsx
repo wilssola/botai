@@ -13,9 +13,8 @@ import MailAuthForm from "~/components/forms/MailAuthForm";
 import {json, useActionData} from "@remix-run/react";
 import {ResponseActionData} from "~/types/response-action-data";
 import {z} from "zod";
-import {MAX_EMAIL_CODE_TIME} from "~/constants/validation";
+import {APP_NAME, MAX_EMAIL_CODE_TIME} from "~/constants";
 import {sendMail} from "~/services/mailer.server";
-import {APP_NAME} from "~/constants";
 
 /**
  * Meta function to set the default meta tags for the verify email page.
