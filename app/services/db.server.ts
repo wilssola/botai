@@ -3,7 +3,7 @@ import {withPulse} from "@prisma/extension-pulse/node";
 import {enhance} from "@zenstackhq/runtime";
 import mongoose from "mongoose";
 import {singleton} from "~/singleton.server";
-import {getUserSession} from "./auth.server";
+import {getUserSession} from "~/services/auth.server";
 import {withAccelerate} from '@prisma/extension-accelerate';
 
 export const db = singleton("db", () =>

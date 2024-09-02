@@ -1,12 +1,14 @@
-import {createRequestHandler} from "@remix-run/express";
-import {ServerBuild} from "@remix-run/node";
+import { createRequestHandler } from "@remix-run/express";
+import { ServerBuild } from "@remix-run/node";
 import compression from "compression";
 import express from "express";
 import rateLimit from "express-rate-limit";
-import {slowDown} from "express-slow-down";
+import { slowDown } from "express-slow-down";
 import helmet from "helmet";
 import morgan from "morgan";
 import * as process from "node:process";
+
+export const PORT = 3000;
 
 /**
  * Creates a Vite development server if the environment is not production.
@@ -29,7 +31,7 @@ const remixHandler = createRequestHandler({
         viteDevServer.ssrLoadModule(
           "virtual:remix/server-build"
         ) as Promise<ServerBuild>
-    : ((await import("../build/server/index.js")) as unknown as ServerBuild),
+    : ((await import("../build/server")) as unknown as ServerBuild),
 });
 
 /**
@@ -85,13 +87,15 @@ app.use(
           "'self'",
           "https://hcaptcha.com",
           "https://*.hcaptcha.com",
-          process.env.NODE_ENV !== "production" ? "ws://localhost:*" : "",
+          "https://*.sentry.io",
+          process.env.NODE_ENV !== "production" ? `ws://localhost:*` : "",
         ],
         "frame-src": [
           "'self'",
           "https://hcaptcha.com",
           "https://*.hcaptcha.com",
         ],
+        "worker-src": ["'self'", "blob:"],
       },
     },
   })

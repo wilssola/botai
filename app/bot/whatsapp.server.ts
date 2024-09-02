@@ -1,7 +1,7 @@
 import qrcode from "qrcode-terminal";
 import whatsapp from "whatsapp-web.js";
 import { MongoStore } from "wwebjs-mongo";
-import { mongodb } from "~/services/db.server";
+import { mongodb } from "../services/db.server";
 
 export class WhatsAppSession {
   private qrCode: string = "";

@@ -1,11 +1,13 @@
+import "./instrumentation.server.mjs";
+
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { bot } from "~/bot.server";
-import { app } from "~/app.server";
+import { app, PORT } from "~/app.server";
 import { APP_NAME } from "~/constants";
 
 const appUrl = process.env.APP_URL || "0.0.0.0";
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || PORT;
 const host = `http://${appUrl}:${port}`;
 
 /**

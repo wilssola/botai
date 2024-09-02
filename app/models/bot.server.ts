@@ -1,5 +1,5 @@
 import { BotCommand, BotSession, BotState, BotStatus } from "@prisma/client";
-import { db, enhancedb } from "~/services/db.server";
+import { db, enhancedb } from "../services/db.server";
 
 export async function createBotSession(session: BotSession) {
   return await db.botSession.create({
