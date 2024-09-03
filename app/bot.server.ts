@@ -41,7 +41,7 @@ async function startBotsOffline(socket?: Socket): Promise<void> {
 
 /**
  * Streams bot state changes and handles them accordingly.
- *
+ * @see https://www.prisma.io/docs/pulse
  * @returns {Promise<void>} A promise that resolves when the bot state stream ends.
  */
 async function streamBots(): Promise<void> {

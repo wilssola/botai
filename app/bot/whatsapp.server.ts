@@ -1,6 +1,14 @@
 import whatsapp from "whatsapp-web.js";
-import {MongoStore} from "wwebjs-mongo";
-import {mongodb} from "~/services/db.server";
+import { MongoStore } from "wwebjs-mongo";
+import { mongodb } from "~/services/db.server";
+import { redis } from "~/services/redis.server";
+import { v6 } from "uuid";
+
+const BACKUP_INTERVAL = 5 * 60 * 1000;
+
+const LOCK_KEY = (sessionId: string) => `lock:whatsapp-session:${sessionId}`;
+const LOCK_INTERVAL = 60 * 1000;
+const LOCK_RENEWAL_INTERVAL = 30 * 1000;
 
 /**
  * Class representing a WhatsApp session, to control the client and session state.
@@ -10,6 +18,9 @@ export class WhatsAppSession {
   private initialized: boolean = false;
   private qrCode: string = "";
   private readonly sessionId: string = "";
+
+  private lockValue: string = "";
+  private lockRenewalInterval: NodeJS.Timeout | undefined;
 
   private options: whatsapp.ClientOptions | undefined;
   private client: whatsapp.Client | undefined;
@@ -38,6 +49,22 @@ export class WhatsAppSession {
    * @returns {Promise<void>}
    */
   async initialize(): Promise<void> {
+    this.lockValue = v6();
+
+    const acquired = await redis.set(
+      LOCK_KEY(this.sessionId),
+      this.lockValue,
+      "EX",
+      LOCK_INTERVAL,
+      "NX"
+    );
+
+    if (!acquired) {
+      throw new Error(
+        `Session ${this.sessionId} is already being initialized by another server.`
+      );
+    }
+
     const mongoose = await mongodb();
 
     this.options = {
@@ -47,7 +74,7 @@ export class WhatsAppSession {
       },
       authStrategy: new whatsapp.RemoteAuth({
         store: new MongoStore({ mongoose }),
-        backupSyncIntervalMs: 300000,
+        backupSyncIntervalMs: BACKUP_INTERVAL,
       }),
     };
 
@@ -57,12 +84,18 @@ export class WhatsAppSession {
       await this.client.initialize();
       this.initialized = true;
       this.registerEventHandlers();
+      this.startLockRenewal();
       console.log(`WhatsApp client initialized for session: ${this.sessionId}`);
     } catch (error) {
       console.error(
         `Error initializing WhatsApp client for session: ${this.sessionId}`,
         error
       );
+    } finally {
+      const currentValue = await redis.get(LOCK_KEY(this.sessionId));
+      if (currentValue === this.lockValue) {
+        await redis.del(LOCK_KEY(this.sessionId));
+      }
     }
   }
 
@@ -122,6 +155,19 @@ export class WhatsAppSession {
     }
 
     await this.client!.destroy();
+
+    clearInterval(this.lockRenewalInterval!);
+  }
+
+  private startLockRenewal(): void {
+    this.lockRenewalInterval = setInterval(async () => {
+      const currentValue = await redis.get(LOCK_KEY(this.sessionId));
+      if (currentValue === this.lockValue) {
+        await redis.expire(LOCK_KEY(this.sessionId), LOCK_INTERVAL);
+      } else {
+        clearInterval(this.lockRenewalInterval!);
+      }
+    }, LOCK_RENEWAL_INTERVAL);
   }
 
   /**
