@@ -2,8 +2,7 @@ import "./instrumentation.server";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { bot } from "~/bot.server";
-import { app, PORT } from "~/app.server";
-import { APP_NAME } from "~/constants";
+import { app, PORT } from "./app";
 
 const appUrl = process.env.APP_URL || "0.0.0.0";
 const port = process.env.PORT || PORT;
@@ -41,16 +40,12 @@ async function main() {
         console.log(`WebSocket connection closed with Client: ${socket.id}`);
       });
 
-      // bot(socket);
+      await bot(socket);
     });
 
-    server.listen(port, () =>
-      console.log(`[${APP_NAME}] Server listening at ${host}`)
-    );
-
-    await bot();
+    server.listen(port, () => console.log(`Server listening at ${host}`));
   } catch (error) {
-    console.error(`[${APP_NAME}] Server crashed`);
+    console.error(`Server crashed`);
     throw error;
   }
 }

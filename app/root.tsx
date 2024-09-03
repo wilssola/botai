@@ -1,6 +1,13 @@
 import { captureRemixErrorBoundaryError } from "@sentry/remix";
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteError } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useRouteError,
+} from "@remix-run/react";
+import React, { useEffect, useState } from "react";
 import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
 import { SocketProvider } from "./context";
@@ -48,9 +55,9 @@ export const ErrorBoundary = () => {
 /**
  * Main application component.
  *
- * @returns {JSX.Element} The rendered App component.
+ * @returns {React.ReactElement} The rendered App component.
  */
-export default function App() {
+export default function App(): React.ReactElement {
   const [socket, setSocket] = useState<Socket>();
 
   useEffect(() => {

@@ -15,7 +15,9 @@
     "db-push": "prisma db push",
     "db-migrate-dev": "prisma migrate dev",
     "db-migrate-deploy": "prisma migrate deploy",
-    "db-migrate-status": "prisma migrate status"
+    "db-migrate-status": "prisma migrate status",
+    "proxy-redis": "fly redis proxy",
+    "proxy-db": "fly proxy 6379:6379 --app botai-db"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^1.11.0",

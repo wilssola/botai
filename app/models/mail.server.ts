@@ -29,8 +29,8 @@ export async function sendMailAuthVerification(
     await sendMail(
       user.email,
       `${APP_NAME} | Código de verificação`,
-      `Seu código de verificação: ${mailAuth!.code}`,
-      `Seu código de verificação: <strong>${mailAuth!.code}</strong>`
+      `Seu código de verificação é: ${mailAuth!.code}`,
+      `Seu código de verificação é: <strong>${mailAuth!.code}</strong>`
     );
   }
 

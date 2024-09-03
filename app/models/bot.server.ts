@@ -128,6 +128,11 @@ export async function getBotCommandById(commandId: string, userReq?: Request) {
   return db.botCommand.findUnique(query);
 }
 
+/**
+ * Gets all bot states with the given status.
+ * @param {BotStatus} status - The status of the bot states to get.
+ * @returns The bot states with the given status.
+ */
 export async function getBotStates(status: BotStatus) {
   return db.botState.findMany({
     where: { status },
@@ -142,8 +147,8 @@ export async function streamBotStates() {
 }
 
 export async function updateBotStateById(
-  stateId: string,
+  id: string,
   updates: Partial<BotState>
 ) {
-  return db.botState.update({ where: { id: stateId }, data: updates });
+  return db.botState.update({ where: { id: id }, data: updates });
 }

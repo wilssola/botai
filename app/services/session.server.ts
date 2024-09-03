@@ -1,10 +1,10 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { APP_NAME } from "~/constants";
+import { SESSION_NAME } from "~/constants";
 import { auth, UserSession } from "./auth.server";
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
-    name: `${APP_NAME.toLowerCase().trim().replace(" ", "-")}-session`,
+    name: SESSION_NAME,
     httpOnly: true,
     path: "/",
     sameSite: "lax",
@@ -24,10 +24,10 @@ export async function createUserSession(user: UserSession, redirectTo: string) {
   });
 }
 
-export async function destroyUserSession(request: Request) {
+export async function destroyUserSession(request: Request, redirectTo: string) {
   const session = await getUserSession(request);
 
-  return redirect("/", {
+  return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await sessionStorage.destroySession(session),
     },

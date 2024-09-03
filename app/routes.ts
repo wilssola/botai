@@ -29,7 +29,7 @@ export const VERIFY_EMAIL_PATH = "/verify-email";
 export const PRODUCTS_PATH = "/products";
 
 /**
- * WhatsApp bot products path constant.
+ * WhatsApp bots products path constant.
  */
 export const PRODUCTS_PATH_WHATSAPP_BOT = `${PRODUCTS_PATH}/whatsapp-bot`;
 

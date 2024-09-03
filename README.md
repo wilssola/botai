@@ -1,41 +1,44 @@
 # Bem-vindo ao repositório do BotAI!
 
-- 📖 [BotAI Docs](https://botai.tecwolf.com.br/docs)
 - 📖 [BotAI](https://botai.tecwolf.com.br)
+- 📖 [BotAI Docs](https://botai.tecwolf.com.br/docs)
 
-## Development
+## Modo de Desenvolvimento
 
-Run the dev server:
+Primeiro, instale as dependências:
+
+```sh
+npm install
+```
+
+Defina todas as variáveis de ambiente em `.env.default` e salve em `.env`.
+Depois disso, inicie a aplicação no modo de desenvolvimento:
 
 ```sh
 npm run dev
 ```
 
-## Deploy padrão
+## Modo de Produção
 
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
+Inicie a aplicação no modo de produção:
 
 ```sh
 npm start
 ```
 
-Now you'll need to pick a host to deploy it to.
+Agora você precisará escolher um host para subir a aplicação.
 
-### Deploy no Fly
+Recomendamos o uso do [Fly](https://fly.io/).
 
-Para criar um novo app no Fly, sem fazer o deploy da aplicação logo em seguida:
+## Deploy no Fly
+
+Para criar um novo app no Fly, sem fazer o deploy da aplicação logo em seguida, use o seguinte comando:
 
 ```sh
 flyctl launch --no-deploy
 ```
 
-Para configurar as variáveis de ambiente no Fly:
+Para configurar as variáveis de ambiente no Fly, faça uso do comando `flyctl secrets set`:
 
 ```sh
 flyctl secrets set APP_URL="0.0.0.0"
@@ -58,46 +61,55 @@ flyctl secrets set MAIL_USER=""
 flyctl secrets set MAIL_PASS=""
 ```
 
-Para fazer o deploy da aplicação no Fly, usando uma build do Docker feita localmente na sua máquina:
+Para fazer o deploy da aplicação no Fly, usando uma build do Docker feita localmente na sua máquina, use o comando:
 
 ```sh
 fly deploy --local-only --ha=false
 ```
 
-Para fazer o deploy da aplicação no Fly, usando uma build do Docker feita na nuvem por uma máquina do Fly:
+Para fazer o deploy da aplicação no Fly, usando uma build do Docker feita na nuvem por uma máquina do Fly, use o
+comando:
 
 ```sh
 fly deploy --ha=false
 ```
 
-#### Configurando o PostgresSQL [Saiba mais](https://fly.io/docs/postgres/connecting/connecting-external/)
+### Configurando o PostgresSQL [(Saiba mais)](https://fly.io/docs/postgres/connecting/connecting-external/)
 
-Para alocar um IP público e permitir conexões externas com o PostgresSQL:
+Para alocar um IP público e permitir conexões externas com o PostgresSQL, você pode usar o comando
+`fly ips allocate-v6`:
 
 ```sh
 fly ips allocate-v6 --app <pg-app-name>
 ```
 
-Para se conectar diretamente ao PostgresSQL no Fly:
+Para se conectar bastar usar a URL no seguinte padrão:
+
+```
+DATABASE_URL="postgres://<username>:<password>@<pg-app-name>.fly.dev:5432/<app-name>?sslmode=require"
+```
+
+Caso queira se conectar diretamente ao PostgresSQL no Fly, você pode usar o comando `fly pg connect`:
 
 ```sh
 fly pg connect --app <pg-app-name>
 ```
 
-Ou, caso tenha o PostgresSQL instalado na sua máquina, você pode se conectar diretamente ao PostgresSQL no Fly.
-Para isso é necessário rodar um proxy localmente:
+Ou, caso tenha o PostgresSQL instalado na sua máquina, você pode se conectar localmente ao PostgresSQL do Fly.
+Para isso é necessário rodar um proxy localmente, usando o comando `fly proxy`:
 
 ```sh
-fly proxy 6432:5432 --app botai-db
+fly proxy 5432:5432 --app <pg-app-name>
 ```
 
-E então, você pode se conectar ao PostgresSQL no Fly:
+E então, você pode se conectar ao PostgresSQL localmente, usando a URL no seguinte padrão ou o comando `psql`:
 
-```sh
+```
+DATABASE_URL="postgres://<username>:<password>@localhost:5432/<app-name>"
 psql "sslmode=require host=<pg-app-name>.fly.dev dbname=<db-name> user=<username> password=<password>"
 ```
 
-#### Configurando o Prisma Pulse [Saiba mais](https://www.prisma.io/docs/pulse/database-setup/general-database-instructions)
+### Configurando o Prisma Pulse [(Saiba mais)](https://www.prisma.io/docs/pulse/database-setup/general-database-instructions)
 
 Para o Prisma Pulse funcionar corretamente, é necessário configurar o PostgresSQL no Fly.
 Primeiro, verifique se o `wal_level` do PostgresSQL no Fly está configurado para `logical`:
@@ -110,6 +122,32 @@ Caso o `wal_level` do PostgresSQL no Fly não esteja configurado para `logical`,
 
 ```sh
 fly postgres config update --wal-level logical --app <pg-app-name>
+```
+
+### Configurando o Redis [(Saiba mais)](https://fly.io/docs/upstash/redis/)
+
+Para criar um novo Redis no Fly, use o seguinte comando:
+
+```sh
+fly redis create
+```
+
+Para se conectar bastar usar a URL no seguinte padrão:
+
+```
+redis://<user>:<password>@fly-<redis-app-name>.upstash.io:6379
+```
+
+Para acessar o Redis localmente, você pode usar o comando `fly proxy`:
+
+```sh
+fly redis proxy
+```
+
+E então, você pode se conectar ao Redis localmente, usando a URL no seguinte padrão:
+
+```
+REDIS_URL="redis://<user>:<password>@localhost:16379"
 ```
 
 ### DIY

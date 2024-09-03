@@ -6,7 +6,6 @@ import rateLimit from "express-rate-limit";
 import { slowDown } from "express-slow-down";
 import helmet from "helmet";
 import morgan from "morgan";
-import * as process from "node:process";
 
 export const PORT = 3000;
 
@@ -31,7 +30,7 @@ const remixHandler = createRequestHandler({
         viteDevServer.ssrLoadModule(
           "virtual:remix/server-build"
         ) as Promise<ServerBuild>
-    : ((await import("../build/server")) as unknown as ServerBuild),
+    : ((await import("./build/server")) as unknown as ServerBuild),
 });
 
 /**

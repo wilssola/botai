@@ -1,6 +1,6 @@
 import {BotState, BotStatus} from "@prisma/client";
 import {Socket} from "socket.io";
-import {whatsappManager} from "~/bot/whatsapp.server";
+import {whatsappManager} from "~/bots/whatsapp.server";
 import {getBotStates, streamBotStates, updateBotSessionById, updateBotStateById,} from "~/models/bot.server";
 import {WHATSAPP_QR_SOCKET_PATH} from "~/routes";
 
@@ -40,21 +40,21 @@ async function startBotsOffline(socket?: Socket): Promise<void> {
 }
 
 /**
- * Streams bot state changes and handles them accordingly.
+ * Streams bots state changes and handles them accordingly.
  * @see https://www.prisma.io/docs/pulse
- * @returns {Promise<void>} A promise that resolves when the bot state stream ends.
+ * @returns {Promise<void>} A promise that resolves when the bots state stream ends.
  */
-async function streamBots(): Promise<void> {
+async function streamBots(socket?: Socket): Promise<void> {
   const botsStream = await streamBotStates();
 
   for await (const botEvent of botsStream) {
     switch (botEvent.action) {
       case "create":
-        await startBot(botEvent.created);
+        await startBot(botEvent.created, socket);
         break;
       case "update":
         if (botEvent.after.status === BotStatus.OFFLINE) {
-          await startBot(botEvent.after);
+          await startBot(botEvent.after, socket);
         }
         break;
       case "delete":
@@ -65,11 +65,11 @@ async function streamBots(): Promise<void> {
 }
 
 /**
- * Starts a bot and sets up its WhatsApp client.
+ * Starts a bots and sets up its WhatsApp client.
  *
- * @param {BotState} bot - The bot state to start.
+ * @param {BotState} bot - The bots state to start.
  * @param {Socket} [socket] - Optional socket to emit QR codes to.
- * @returns {Promise<void>} A promise that resolves when the bot is started.
+ * @returns {Promise<void>} A promise that resolves when the bots is started.
  */
 async function startBot(bot: BotState, socket?: Socket): Promise<void> {
   console.log(`Starting bot: ${bot.id}`);
@@ -77,37 +77,48 @@ async function startBot(bot: BotState, socket?: Socket): Promise<void> {
   try {
     await whatsappManager.createClient(
       bot.sessionId,
-      (qr: string) => {
-        updateBotSessionById(bot.sessionId, { whatsappQr: qr });
-        socket ? whatsAppQrSocketEmitter(socket, bot.sessionId, qr) : undefined;
+      async (qr) => {
+        await updateBotSessionById(bot.sessionId, { whatsappQr: qr });
+        //socket ? whatsAppQrSocketEmitter(socket, bot.sessionId, qr) : undefined;
       },
-      () => updateBotStateById(bot.id, { status: BotStatus.ONLINE })
+      async () => {
+        await updateBotStateById(bot.id, { status: BotStatus.ONLINE });
+      },
+      async () => {
+        await updateBotStateById(bot.id, { status: BotStatus.OFFLINE });
+      },
+      async (message, client) => {
+        if (message.body.includes("Oi")) {
+          await client.sendMessage(message.from, "Olá!");
+        }
+      }
     );
   } catch (error) {
+    console.error(`Failed to start bot: ${bot.id}`);
     console.error(error);
   }
 }
 
 /**
- * Kills a bot's WhatsApp client and removes its session.
+ * Kills a bots's WhatsApp client and removes its session.
  *
- * @param {string} sessionId - The session ID of the bot to kill.
- * @returns {Promise<void>} A promise that resolves when the bot is killed.
+ * @param {string} sessionId - The session ID of the bots to kill.
+ * @returns {Promise<void>} A promise that resolves when the bots is killed.
  */
 async function killBot(sessionId: string): Promise<void> {
   try {
     await whatsappManager.sessions[sessionId].killClient();
     delete whatsappManager.sessions[sessionId];
   } catch (error) {
-    console.log(error);
+    console.error(`Failed to kill bot: ${sessionId}`, error);
   }
 }
 
 /**
- * Main function to start offline bots and stream bot state changes.
+ * Main function to start offline bots and stream bots state changes.
  *
  * @param {Socket} [socket] - Optional socket to emit QR codes to.
- * @returns {Promise<void>} A promise that resolves when the bot operations are complete.
+ * @returns {Promise<void>} A promise that resolves when the bots operations are complete.
  */
 export const bot = async (socket?: Socket): Promise<void> => {
   await startBotsOffline(socket);
