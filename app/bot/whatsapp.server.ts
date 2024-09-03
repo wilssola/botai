@@ -1,8 +1,11 @@
-import qrcode from "qrcode-terminal";
 import whatsapp from "whatsapp-web.js";
-import { MongoStore } from "wwebjs-mongo";
-import { mongodb } from "../services/db.server";
+import {MongoStore} from "wwebjs-mongo";
+import {mongodb} from "~/services/db.server";
 
+/**
+ * Class representing a WhatsApp session, to control the client and session state.
+ * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2816
+ */
 export class WhatsAppSession {
   private initialized: boolean = false;
   private qrCode: string = "";
@@ -14,18 +17,27 @@ export class WhatsAppSession {
   private readonly onQRCodeGenerated: (qr: string) => void;
   private readonly onClientReady: () => void;
 
+  /**
+   * Creates a WhatsApp session.
+   * @param {string} sessionId - The session ID.
+   * @param {(qr: string) => void} onQRCodeGenerated - Callback for QR code generation.
+   * @param {() => void} onClientReady - Callback for when the client is ready.
+   */
   constructor(
     sessionId: string,
     onQRCodeGenerated: (qr: string) => void,
     onClientReady: () => void
   ) {
     this.sessionId = sessionId;
-
     this.onQRCodeGenerated = onQRCodeGenerated;
     this.onClientReady = onClientReady;
   }
 
-  async initialize() {
+  /**
+   * Initializes the WhatsApp client.
+   * @returns {Promise<void>}
+   */
+  async initialize(): Promise<void> {
     const mongoose = await mongodb();
 
     this.options = {
@@ -47,23 +59,42 @@ export class WhatsAppSession {
       this.registerEventHandlers();
       console.log(`WhatsApp client initialized for session: ${this.sessionId}`);
     } catch (error) {
-      console.error(error);
+      console.error(
+        `Error initializing WhatsApp client for session: ${this.sessionId}`,
+        error
+      );
     }
   }
 
-  getSessionId() {
+  /**
+   * Gets the session ID.
+   * @returns {string} The session ID.
+   */
+  getSessionId(): string {
     return this.sessionId;
   }
 
-  getQrCode() {
+  /**
+   * Gets the QR code.
+   * @returns {string} The QR code.
+   */
+  getQrCode(): string {
     return this.qrCode;
   }
 
-  getClient() {
+  /**
+   * Gets the WhatsApp client.
+   * @returns {whatsapp.Client | undefined} The WhatsApp client.
+   */
+  getClient(): whatsapp.Client | undefined {
     return this.client;
   }
 
-  async restartClient() {
+  /**
+   * Restarts the WhatsApp client.
+   * @returns {Promise<void>}
+   */
+  async restartClient(): Promise<void> {
     if (!this.initialized) {
       return;
     }
@@ -81,7 +112,11 @@ export class WhatsAppSession {
       );
   }
 
-  async killClient() {
+  /**
+   * Kills the WhatsApp client.
+   * @returns {Promise<void>}
+   */
+  async killClient(): Promise<void> {
     if (!this.initialized) {
       return;
     }
@@ -89,7 +124,11 @@ export class WhatsAppSession {
     await this.client!.destroy();
   }
 
-  private registerEventHandlers() {
+  /**
+   * Registers event handlers for the WhatsApp client.
+   * @private
+   */
+  private registerEventHandlers(): void {
     if (!this.initialized) {
       return;
     }
@@ -97,9 +136,7 @@ export class WhatsAppSession {
     this.client!.on("qr", (qr) => {
       this.qrCode = qr;
 
-      if (process.env.NODE_ENV !== "production") {
-        qrcode.generate(qr, { small: true });
-      }
+      console.log(`WhatsApp QR code for session: ${this.sessionId}`, qr);
 
       this.onQRCodeGenerated(qr);
     });
@@ -119,6 +156,9 @@ export class WhatsAppSession {
   }
 }
 
+/**
+ * Class representing a manager for WhatsApp sessions.
+ */
 class WhatsAppManager {
   public readonly sessions: { [key: string]: WhatsAppSession } = {};
 
@@ -126,11 +166,18 @@ class WhatsAppManager {
     return this;
   }
 
+  /**
+   * Creates a new WhatsApp client session.
+   * @param {string} sessionId - The session ID.
+   * @param {(qr: string) => void} qrCallback - Callback for QR code generation.
+   * @param {() => void} readyCallback - Callback for when the client is ready.
+   * @returns {Promise<WhatsAppSession>} The created WhatsApp session.
+   */
   async createClient(
     sessionId: string,
     qrCallback: (qr: string) => void,
     readyCallback: () => void
-  ) {
+  ): Promise<WhatsAppSession> {
     const session = new WhatsAppSession(sessionId, qrCallback, readyCallback);
 
     await session.initialize();
@@ -140,9 +187,14 @@ class WhatsAppManager {
     return session;
   }
 
-  getClient = (sessionId: string) => {
+  /**
+   * Gets a WhatsApp client session by session ID.
+   * @param {string} sessionId - The session ID.
+   * @returns {WhatsAppSession | undefined} The WhatsApp session.
+   */
+  getClient(sessionId: string): WhatsAppSession | undefined {
     return this.sessions[sessionId];
-  };
+  }
 }
 
 export const whatsappManager = new WhatsAppManager();

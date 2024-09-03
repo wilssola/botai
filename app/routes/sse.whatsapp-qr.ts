@@ -6,7 +6,8 @@ import { getBotSessionByUserId } from "~/models/bot.server";
 
 export const WHATSAPP_QR_SSE_EVENT = "whatsapp-qr";
 
-const WHATSAPP_QR_RESET_INTERVAL = 20 * 1000;
+const WHATSAPP_QR_INTERVAL = 1000;
+const WHATSAPP_QR_RESET_INTERVAL = 5 * WHATSAPP_QR_INTERVAL;
 
 export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   return eventStream(request.signal, function setup(send) {
@@ -16,15 +17,22 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
         return "";
       }
 
-      const session = await getBotSessionByUserId(user.id, request);
-      if (!session) {
-        return "";
-      }
-
+      let time = 0;
+      let session = await getBotSessionByUserId(user.id, request);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      for await (const _ of interval(WHATSAPP_QR_RESET_INTERVAL, {
+      for await (const _ of interval(WHATSAPP_QR_INTERVAL, {
         signal: request.signal,
       })) {
+        time += WHATSAPP_QR_INTERVAL;
+        if (time >= WHATSAPP_QR_RESET_INTERVAL) {
+          session = await getBotSessionByUserId(user.id, request);
+          time = 0;
+        }
+
+        if (!session) {
+          return "";
+        }
+
         send({
           event: WHATSAPP_QR_SSE_EVENT,
           data: session?.whatsappQr ?? "",
@@ -34,9 +42,6 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
 
     run();
 
-    return async () => {
-      // This will be called when the client closes the connection or when the request is aborted.
-      // You can use it to clean up any resources or subscriptions that you might have created.
-    };
+    return async () => {};
   });
 };

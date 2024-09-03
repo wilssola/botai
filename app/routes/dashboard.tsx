@@ -11,7 +11,9 @@ import {useLoaderData} from "@remix-run/react";
 import Header from "~/components/dashboard/Header";
 import {createBotSessionByUserId, getBotSessionByUserId,} from "~/models/bot.server";
 import sessionLoader from "~/utils/session-loader.server";
-import {QRCodeCanvas} from "qrcode.react";
+import TokenInput from "~/components/inputs/TokenInput";
+import {QRCodeSVG} from "qrcode.react";
+import {FaWhatsapp} from "react-icons/fa";
 
 /**
  * Loader function to handle the initial data fetching for the dashboard page.
@@ -67,11 +69,22 @@ export default function Dashboard(): React.ReactElement {
 
       <main>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <QRCodeCanvas
-            value={whatsappQr ?? ""}
-            title="WhatsApp QRCode"
-          ></QRCodeCanvas>
-          {whatsappQr}
+          <div className="grid-cols-1 grid gap-2 items-center justify-center max-w-64 bg-emerald-600 p-3 rounded-md shadow-lg">
+            <div className="flex items-center justify-center space-x-5">
+              <div className="p-2 bg-white rounded-md shadow-md">
+                <QRCodeSVG
+                  value={whatsappQr ?? ""}
+                  title="WhatsApp QRCode"
+                ></QRCodeSVG>
+              </div>
+              <FaWhatsapp className="text-white" size={64} />
+            </div>
+
+            <TokenInput
+              buttonClassName="bg-gray-700"
+              value={whatsappQr ?? ""}
+            />
+          </div>
         </div>
       </main>
     </>
