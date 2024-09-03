@@ -59,11 +59,19 @@ export async function deleteBotSessionById(
   return await db.botSession.delete(query);
 }
 
+/**
+ * Updates a bot session by ID.
+ *
+ * @param {string} sessionId - The ID of the bot session to update.
+ * @param {Partial<BotSession>} updates - The updates to apply to the bot session.
+ * @param {Request} [userReq] - The request to use for authentication.
+ * @returns {Promise<BotSession>} The updated bot session.
+ */
 export async function updateBotSessionById(
   sessionId: string,
   updates: Partial<BotSession>,
   userReq?: Request
-) {
+): Promise<BotSession> {
   const query = {
     where: {
       id: sessionId,

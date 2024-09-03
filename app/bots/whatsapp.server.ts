@@ -3,16 +3,18 @@ import { MongoStore } from "wwebjs-mongo";
 import { mongodb } from "~/services/db.server";
 import { redis } from "~/services/redis.server";
 import { v6 } from "uuid";
+import { Mongoose } from "mongoose";
 
 const BACKUP_INTERVAL = 5 * 60 * 1000;
 
 const LOCK_KEY = (sessionId: string) => `lock:whatsapp-session:${sessionId}`;
-const LOCK_INTERVAL = 2 * 60 * 1000;
-const LOCK_RENEWAL_INTERVAL = 60 * 1000;
+const LOCK_INTERVAL_S = 2 * 60;
+const LOCK_RENEWAL_INTERVAL_MS = 60 * 1000;
 
 /**
  * Class representing a WhatsApp session, to control the client and session state.
  * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2816
+ * @see https://github.com/pedroslopez/whatsapp-web.js/pull/3200
  */
 export class WhatsAppSession {
   private initialized: boolean = false;
@@ -24,8 +26,10 @@ export class WhatsAppSession {
 
   private options: whatsapp.ClientOptions | undefined;
   private client: whatsapp.Client | undefined;
+  private store: typeof MongoStore | undefined;
 
   private readonly onQRCodeGenerated: (qr: string) => Promise<void>;
+  private readonly onAuthFailure: () => Promise<void>;
   private readonly onClientReady: () => Promise<void>;
   private readonly onClientDisconnected: () => Promise<void>;
   private readonly onMessage: (
@@ -33,17 +37,22 @@ export class WhatsAppSession {
     client: whatsapp.Client
   ) => Promise<void>;
 
+  private readonly mongoose: Mongoose | undefined;
+
   /**
    * Creates a WhatsApp session.
    * @param {string} sessionId - The session ID.
    * @param {(qr: string) => Promise<void>} onQRCodeGenerated - Callback for QR code generation.
+   * @param {() => Promise<void>} onAuthFailure - Callback for when authentication fails.
    * @param {() => Promise<void>} onClientReady - Callback for when the client is ready.
    * @param {() => Promise<void>} onClientDisconnected - Callback for when the client is disconnected.
    * @param {(message: whatsapp.Message, client: whatsapp.Client) => Promise<void>} onMessage - Callback for when a message is received.
    */
   constructor(
     sessionId: string,
+    mongoose: Mongoose,
     onQRCodeGenerated: (qr: string) => Promise<void>,
+    onAuthFailure: () => Promise<void>,
     onClientReady: () => Promise<void>,
     onClientDisconnected: () => Promise<void>,
     onMessage: (
@@ -52,7 +61,9 @@ export class WhatsAppSession {
     ) => Promise<void>
   ) {
     this.sessionId = sessionId;
+    this.mongoose = mongoose;
     this.onQRCodeGenerated = onQRCodeGenerated;
+    this.onAuthFailure = onAuthFailure;
     this.onClientReady = onClientReady;
     this.onClientDisconnected = onClientDisconnected;
     this.onMessage = onMessage;
@@ -69,7 +80,7 @@ export class WhatsAppSession {
       LOCK_KEY(this.sessionId),
       this.lockValue,
       "EX",
-      LOCK_INTERVAL,
+      LOCK_INTERVAL_S,
       "NX"
     );
 
@@ -79,7 +90,11 @@ export class WhatsAppSession {
       );
     }
 
-    const mongoose = await mongodb();
+    console.log(
+      `Session lock acquired for session ${this.sessionId} with value ${this.lockValue}`
+    );
+
+    this.store = new MongoStore({ mongoose: this.mongoose });
 
     this.options = {
       puppeteer: {
@@ -87,7 +102,7 @@ export class WhatsAppSession {
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       },
       authStrategy: new whatsapp.RemoteAuth({
-        store: new MongoStore({ mongoose }),
+        store: this.store,
         backupSyncIntervalMs: BACKUP_INTERVAL,
       }),
     };
@@ -99,17 +114,12 @@ export class WhatsAppSession {
       this.initialized = true;
       this.registerEventHandlers();
       this.startLockRenewal();
-      console.log(`WhatsApp client initialized for session: ${this.sessionId}`);
+      console.log(`WhatsApp client initialized for session ${this.sessionId}`);
     } catch (error) {
       console.error(
-        `Error initializing WhatsApp client for session: ${this.sessionId}`
+        `Error initializing WhatsApp client for session ${this.sessionId}`
       );
       console.error(error);
-    } finally {
-      const currentValue = await redis.get(LOCK_KEY(this.sessionId));
-      if (currentValue === this.lockValue) {
-        await redis.del(LOCK_KEY(this.sessionId));
-      }
     }
   }
 
@@ -155,7 +165,7 @@ export class WhatsAppSession {
     this.client
       .initialize()
       .then(() =>
-        console.log(`WhatsApp client restarted for session: ${this.sessionId}`)
+        console.log(`WhatsApp client restarted for session ${this.sessionId}`)
       );
   }
 
@@ -169,6 +179,8 @@ export class WhatsAppSession {
     }
 
     await this.client!.destroy();
+
+    console.log(`WhatsApp client killed for session ${this.sessionId}`);
 
     clearInterval(this.lockRenewalInterval!);
   }
@@ -187,18 +199,22 @@ export class WhatsAppSession {
   private startLockRenewal(): void {
     // Start the lock renewal interval
     this.lockRenewalInterval = setInterval(async () => {
+      console.log(`Checking lock for session ${this.sessionId}`);
+
       // Get the current value of the lock
       const currentValue = await redis.get(LOCK_KEY(this.sessionId));
 
       // If the current value is the same as the one we set, renew the lock
       if (currentValue === this.lockValue) {
         // Set the TTL of the lock to the lock interval
-        await redis.expire(LOCK_KEY(this.sessionId), LOCK_INTERVAL);
+        await redis.expire(LOCK_KEY(this.sessionId), LOCK_INTERVAL_S);
+        console.log(`Renewed lock for session ${this.sessionId}`);
       } else {
-        // If the current value is different, clear the lock renewal interval
-        clearInterval(this.lockRenewalInterval!);
+        console.log(`This instance not is owner of session ${this.sessionId}`);
+        // If the current value is different, kill the client
+        await this.killClient();
       }
-    }, LOCK_RENEWAL_INTERVAL);
+    }, LOCK_RENEWAL_INTERVAL_MS);
   }
 
   /**
@@ -214,21 +230,24 @@ export class WhatsAppSession {
       this.qrCode = qr;
 
       console.log(
-        `WhatsApp QR code for session: ${this.sessionId}`,
-        this.qrCode
+        `WhatsApp QR code for session ${this.sessionId} is ${this.qrCode}`
       );
 
       await this.onQRCodeGenerated(qr);
     });
 
+    this.client.on("auth_failure", async () => {
+      console.log(`Auth failure on session ${this.sessionId}`);
+    });
+
     this.client.on("ready", async () => {
-      console.log(`WhatsApp client is ready on session: ${this.sessionId}`);
+      console.log(`WhatsApp client is ready on session ${this.sessionId}`);
 
       await this.onClientReady();
     });
 
     this.client.on("disconnected", async () => {
-      console.log(`WhatsApp client disconnected on session: ${this.sessionId}`);
+      console.log(`WhatsApp client disconnected on session ${this.sessionId}`);
 
       await this.onClientDisconnected();
     });
@@ -248,6 +267,7 @@ export class WhatsAppSession {
  */
 class WhatsAppManager {
   public readonly sessions: { [key: string]: WhatsAppSession } = {};
+  private mongoose: Mongoose | undefined;
 
   constructor() {
     return this;
@@ -257,6 +277,7 @@ class WhatsAppManager {
    * Creates a new WhatsApp client session.
    * @param {string} sessionId - The session ID.
    * @param {(qr: string) => Promise<void>} qrCallback - Callback for QR code generation.
+   * @param {() => Promise<void>} authFailureCallback - Callback for when authentication fails.
    * @param {() => Promise<void>} readyCallback - Callback for when the client is ready.
    * @param {() => Promise<void>} disconnectedCallback - Callback for when the client is disconected.
    * @param {(message: whatsapp.Message, client: whatsapp.Client) => Promise<void>} messageCallback - Callback for when a message is received.
@@ -265,6 +286,7 @@ class WhatsAppManager {
   async createClient(
     sessionId: string,
     qrCallback: (qr: string) => Promise<void>,
+    authFailureCallback: () => Promise<void>,
     readyCallback: () => Promise<void>,
     disconnectedCallback: () => Promise<void>,
     messageCallback: (
@@ -273,12 +295,18 @@ class WhatsAppManager {
     ) => Promise<void>
   ): Promise<WhatsAppSession> {
     if (this.sessions[sessionId]) {
-      throw new Error(`Session ${sessionId} already exists.`);
+      throw new Error(`Session ${sessionId} already exists`);
+    }
+
+    if (!this.mongoose) {
+      this.mongoose = await mongodb();
     }
 
     const session = new WhatsAppSession(
       sessionId,
+      this.mongoose,
       qrCallback,
+      authFailureCallback,
       readyCallback,
       disconnectedCallback,
       messageCallback

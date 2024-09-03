@@ -39,11 +39,11 @@ async function main() {
       socket.on("disconnect", () => {
         console.log(`WebSocket connection closed with Client: ${socket.id}`);
       });
-
-      await bot(socket);
     });
 
     server.listen(port, () => console.log(`Server listening at ${host}`));
+
+    bot();
   } catch (error) {
     console.error(`Server crashed`);
     throw error;

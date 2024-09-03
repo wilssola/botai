@@ -89,16 +89,6 @@ export default function Dashboard(): React.ReactElement {
         setWhatsappSend((prev) => [...prev, data]);
       }
     );
-
-    return () => {
-      socket.off("event");
-      socket.off(
-        WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT(loaderData.botSession.sessionId)
-      );
-      socket.off(
-        WHATSAPP_CHAT_SEND_SOCKET_EVENT(loaderData.botSession.sessionId)
-      );
-    };
   }, [socket]);
 
   return (

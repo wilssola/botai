@@ -2,11 +2,7 @@ import {BotState, BotStatus} from "@prisma/client";
 import {Socket} from "socket.io";
 import {whatsappManager} from "~/bots/whatsapp.server";
 import {getBotStates, streamBotStates, updateBotSessionById, updateBotStateById,} from "~/models/bot.server";
-import {
-  WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT,
-  WHATSAPP_CHAT_SEND_SOCKET_EVENT,
-  WHATSAPP_QR_SOCKET_EVENT,
-} from "~/constants/events";
+import {WHATSAPP_QR_SOCKET_EVENT} from "~/constants/events";
 
 /**
  * Emits a WhatsApp QR code to the specified socket.
@@ -26,10 +22,9 @@ const whatsAppQrSocketEmitter = (
 /**
  * Starts all bots that are currently offline.
  *
- * @param {Socket} [socket] - Optional socket to emit QR codes to.
  * @returns {Promise<void>} A promise that resolves when all offline bots are started.
  */
-async function startBotsOffline(socket?: Socket): Promise<void> {
+async function startBotsOffline(): Promise<void> {
   const bots = await getBotStates(BotStatus.OFFLINE);
 
   if (bots.length > 0) {
@@ -38,7 +33,7 @@ async function startBotsOffline(socket?: Socket): Promise<void> {
         continue;
       }
 
-      await startBot(bot, socket);
+      await startBot(bot);
     }
   }
 }
@@ -48,17 +43,17 @@ async function startBotsOffline(socket?: Socket): Promise<void> {
  * @see https://www.prisma.io/docs/pulse
  * @returns {Promise<void>} A promise that resolves when the bots state stream ends.
  */
-async function streamBots(socket?: Socket): Promise<void> {
+async function streamBots(): Promise<void> {
   const botsStream = await streamBotStates();
 
   for await (const botEvent of botsStream) {
     switch (botEvent.action) {
       case "create":
-        await startBot(botEvent.created, socket);
+        await startBot(botEvent.created);
         break;
       case "update":
         if (botEvent.after.status === BotStatus.OFFLINE) {
-          await startBot(botEvent.after, socket);
+          await startBot(botEvent.after);
         }
         break;
       case "delete":
@@ -72,18 +67,19 @@ async function streamBots(socket?: Socket): Promise<void> {
  * Starts a bots and sets up its WhatsApp client.
  *
  * @param {BotState} bot - The bots state to start.
- * @param {Socket} [socket] - Optional socket to emit QR codes to.
  * @returns {Promise<void>} A promise that resolves when the bots is started.
  */
-async function startBot(bot: BotState, socket?: Socket): Promise<void> {
-  console.log(`Starting bot: ${bot.id}`);
+async function startBot(bot: BotState): Promise<void> {
+  console.log(`Starting bot ${bot.id} for session ${bot.sessionId}`);
 
   try {
     await whatsappManager.createClient(
       bot.sessionId,
       async (qr) => {
         await updateBotSessionById(bot.sessionId, { whatsappQr: qr });
-        //socket ? whatsAppQrSocketEmitter(socket, bot.sessionId, qr) : undefined;
+      },
+      async () => {
+        await updateBotStateById(bot.id, { status: BotStatus.OFFLINE });
       },
       async () => {
         await updateBotStateById(bot.id, { status: BotStatus.ONLINE });
@@ -92,20 +88,13 @@ async function startBot(bot: BotState, socket?: Socket): Promise<void> {
         await updateBotStateById(bot.id, { status: BotStatus.OFFLINE });
       },
       async (message, client) => {
-        socket?.emit(
-          WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT(bot.sessionId),
-          message.body
-        );
-
         if (message.body.includes("Oi")) {
-          socket?.emit(WHATSAPP_CHAT_SEND_SOCKET_EVENT(bot.sessionId), "Olá!");
-
           await client.sendMessage(message.from, "Olá!");
         }
       }
     );
   } catch (error) {
-    console.error(`Failed to start bot: ${bot.id}`);
+    console.error(`Failed to start bot ${bot.id}`);
     console.error(error);
   }
 }
@@ -121,17 +110,16 @@ async function killBot(sessionId: string): Promise<void> {
     await whatsappManager.sessions[sessionId].killClient();
     delete whatsappManager.sessions[sessionId];
   } catch (error) {
-    console.error(`Failed to kill bot: ${sessionId}`, error);
+    console.error(`Failed to kill bot ${sessionId}`, error);
   }
 }
 
 /**
  * Main function to start offline bots and stream bots state changes.
  *
- * @param {Socket} [socket] - Optional socket to emit QR codes to.
  * @returns {Promise<void>} A promise that resolves when the bots operations are complete.
  */
-export const bot = async (socket?: Socket): Promise<void> => {
-  await startBotsOffline(socket);
-  await streamBots();
+export const bot = async (): Promise<void> => {
+  await startBotsOffline();
+  //await streamBots();
 };
