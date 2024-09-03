@@ -49,14 +49,6 @@ export const PRICING_PATH = "/pricing";
 export const DASHBOARD_PATH = "/dashboard";
 
 /**
- * Generates the WhatsApp QR socket path for a given session ID.
- * @param {string} sessionId - The session ID.
- * @returns {string} The WhatsApp QR socket path.
- */
-export const WHATSAPP_QR_SOCKET_PATH = (sessionId: string): string =>
-  `/socket/whatsapp-qr/${sessionId}`;
-
-/**
  * WhatsApp QR SSE path constant.
  */
 export const WHATSAPP_QR_SSE_PATH = "/sse/whatsapp-qr";

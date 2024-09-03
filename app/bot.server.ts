@@ -2,7 +2,11 @@ import {BotState, BotStatus} from "@prisma/client";
 import {Socket} from "socket.io";
 import {whatsappManager} from "~/bots/whatsapp.server";
 import {getBotStates, streamBotStates, updateBotSessionById, updateBotStateById,} from "~/models/bot.server";
-import {WHATSAPP_QR_SOCKET_PATH} from "~/routes";
+import {
+  WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT,
+  WHATSAPP_CHAT_SEND_SOCKET_EVENT,
+  WHATSAPP_QR_SOCKET_EVENT,
+} from "~/constants/events";
 
 /**
  * Emits a WhatsApp QR code to the specified socket.
@@ -16,7 +20,7 @@ const whatsAppQrSocketEmitter = (
   sessionId: string,
   qr: string
 ) => {
-  socket.emit(WHATSAPP_QR_SOCKET_PATH(sessionId), qr);
+  socket.emit(WHATSAPP_QR_SOCKET_EVENT(sessionId), qr);
 };
 
 /**
@@ -88,7 +92,14 @@ async function startBot(bot: BotState, socket?: Socket): Promise<void> {
         await updateBotStateById(bot.id, { status: BotStatus.OFFLINE });
       },
       async (message, client) => {
+        socket?.emit(
+          WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT(bot.sessionId),
+          message.body
+        );
+
         if (message.body.includes("Oi")) {
+          socket?.emit(WHATSAPP_CHAT_SEND_SOCKET_EVENT(bot.sessionId), "Olá!");
+
           await client.sendMessage(message.from, "Olá!");
         }
       }

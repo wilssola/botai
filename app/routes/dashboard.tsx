@@ -1,5 +1,5 @@
 import {LoaderFunction} from "@remix-run/node";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {useEventSource} from "remix-utils/sse/react";
 import {useSocket} from "~/context";
 import {LOGIN_PATH, WHATSAPP_QR_SSE_PATH} from "~/routes";
@@ -14,6 +14,7 @@ import sessionLoader from "~/utils/session-loader.server";
 import TokenInput from "~/components/inputs/TokenInput";
 import {QRCodeSVG} from "qrcode.react";
 import {FaWhatsapp} from "react-icons/fa";
+import {WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT, WHATSAPP_CHAT_SEND_SOCKET_EVENT,} from "~/constants/events";
 
 /**
  * Loader function to handle the initial data fetching for the dashboard page.
@@ -49,6 +50,13 @@ export default function Dashboard(): React.ReactElement {
   const socket = useSocket();
   const loaderData = useLoaderData<typeof loader>();
 
+  const whatsappQr = useEventSource(WHATSAPP_QR_SSE_PATH, {
+    event: WHATSAPP_QR_SSE_EVENT,
+  });
+
+  const [whatsappReceive, setWhatsappReceive] = useState<string[]>([]);
+  const [whatsappSend, setWhatsappSend] = useState<string[]>([]);
+
   useEffect(() => {
     if (!socket) {
       return;
@@ -57,11 +65,41 @@ export default function Dashboard(): React.ReactElement {
     socket.on("event", (data) => {
       console.log(`Received event from Server (${socket.id}):`, data);
     });
-  }, [socket]);
 
-  const whatsappQr = useEventSource(WHATSAPP_QR_SSE_PATH, {
-    event: WHATSAPP_QR_SSE_EVENT,
-  });
+    socket.on(
+      WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT(loaderData.botSession.sessionId),
+      (data) => {
+        console.log(
+          `Received WhatsApp message from Server (${socket.id}):`,
+          data
+        );
+
+        setWhatsappReceive((prev) => [...prev, data]);
+      }
+    );
+
+    socket.on(
+      WHATSAPP_CHAT_SEND_SOCKET_EVENT(loaderData.botSession.sessionId),
+      (data) => {
+        console.log(
+          `Received WhatsApp message from Server (${socket.id}):`,
+          data
+        );
+
+        setWhatsappSend((prev) => [...prev, data]);
+      }
+    );
+
+    return () => {
+      socket.off("event");
+      socket.off(
+        WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT(loaderData.botSession.sessionId)
+      );
+      socket.off(
+        WHATSAPP_CHAT_SEND_SOCKET_EVENT(loaderData.botSession.sessionId)
+      );
+    };
+  }, [socket]);
 
   return (
     <>
@@ -84,6 +122,30 @@ export default function Dashboard(): React.ReactElement {
               buttonClassName="bg-gray-700"
               value={whatsappQr ?? ""}
             />
+          </div>
+
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Mensagens Recebidas
+            </h2>
+            <div className="space-y-2">
+              {whatsappReceive.map((message, index) => (
+                <div key={index} className="bg-gray-100 p-2 rounded-md">
+                  {message}
+                </div>
+              ))}
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Mensagens Enviadas
+            </h2>
+            <div className="space-y-2">
+              {whatsappSend.map((message, index) => (
+                <div key={index} className="bg-gray-100 p-2 rounded-md">
+                  {message}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </main>
