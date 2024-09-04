@@ -1,0 +1,9 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "server.ts",
+    "./app/**/*.ts",
+    "./app/**/*.tsx"
+  ],
+  "out": "public/docs"
+}
