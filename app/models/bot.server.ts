@@ -141,13 +141,19 @@ export async function getBotCommandById(commandId: string, userReq?: Request) {
  * @param {BotStatus} status - The status of the bot states to get.
  * @returns The bot states with the given status.
  */
-export async function getBotStates(status: BotStatus) {
-  return db.botState.findMany({
-    where: { status },
-    include: {
-      session: true,
-    },
-  });
+export async function getBotStates(status?: BotStatus) {
+  return status
+    ? db.botState.findMany({
+        where: { status },
+        include: {
+          session: true,
+        },
+      })
+    : db.botState.findMany({
+        include: {
+          session: true,
+        },
+      });
 }
 
 export async function streamBotStates() {

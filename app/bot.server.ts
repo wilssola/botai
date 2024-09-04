@@ -9,7 +9,7 @@ import {logger} from "~/services/logger";
  * @returns {Promise<void>} A promise that resolves when all offline bots are started.
  */
 async function startBotsOffline(): Promise<void> {
-  const bots = await getBotStates(BotStatus.OFFLINE);
+  const bots = await getBotStates();
 
   if (bots.length > 0) {
     for (const bot of bots) {
