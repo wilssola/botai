@@ -14,7 +14,7 @@ import sessionLoader from "~/utils/session-loader.server";
 import TokenInput from "~/components/inputs/TokenInput";
 import {QRCodeSVG} from "qrcode.react";
 import {FaWhatsapp} from "react-icons/fa";
-import {WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT, WHATSAPP_CHAT_SEND_SOCKET_EVENT,} from "~/constants/events";
+import {BotSession} from "@prisma/client";
 
 /**
  * Loader function to handle the initial data fetching for the dashboard page.
@@ -65,31 +65,12 @@ export default function Dashboard(): React.ReactElement {
     socket.on("event", (data) => {
       console.log(`Received event from Server (${socket.id}):`, data);
     });
-
-    socket.on(
-      WHATSAPP_CHAT_RECEIVE_SOCKET_EVENT(loaderData.botSession.sessionId),
-      (data) => {
-        console.log(
-          `Received WhatsApp message from Server (${socket.id}):`,
-          data
-        );
-
-        setWhatsappReceive((prev) => [...prev, data]);
-      }
-    );
-
-    socket.on(
-      WHATSAPP_CHAT_SEND_SOCKET_EVENT(loaderData.botSession.sessionId),
-      (data) => {
-        console.log(
-          `Received WhatsApp message from Server (${socket.id}):`,
-          data
-        );
-
-        setWhatsappSend((prev) => [...prev, data]);
-      }
-    );
   }, [socket]);
+
+  useEffect(() => {
+    setWhatsappReceive((prev) => [...prev, ""]);
+    setWhatsappSend((prev) => [...prev, ""]);
+  }, [loaderData.botSession.sessionId]);
 
   return (
     <>
@@ -101,7 +82,11 @@ export default function Dashboard(): React.ReactElement {
             <div className="flex items-center justify-center space-x-5">
               <div className="p-2 bg-white rounded-md shadow-md">
                 <QRCodeSVG
-                  value={whatsappQr ?? ""}
+                  value={
+                    whatsappQr ??
+                    (loaderData.botSession as BotSession).whatsappQr ??
+                    ""
+                  }
                   title="WhatsApp QRCode"
                 ></QRCodeSVG>
               </div>
@@ -110,7 +95,11 @@ export default function Dashboard(): React.ReactElement {
 
             <TokenInput
               buttonClassName="bg-gray-700"
-              value={whatsappQr ?? ""}
+              value={
+                whatsappQr ??
+                (loaderData.botSession as BotSession).whatsappQr ??
+                ""
+              }
             />
           </div>
 

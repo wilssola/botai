@@ -1,23 +1,6 @@
 import {BotState, BotStatus} from "@prisma/client";
-import {Socket} from "socket.io";
 import {whatsappManager} from "~/bots/whatsapp.server";
 import {getBotStates, streamBotStates, updateBotSessionById, updateBotStateById,} from "~/models/bot.server";
-import {WHATSAPP_QR_SOCKET_EVENT} from "~/constants/events";
-
-/**
- * Emits a WhatsApp QR code to the specified socket.
- *
- * @param {Socket} socket - The socket to emit the QR code to.
- * @param {string} sessionId - The session ID associated with the QR code.
- * @param {string} qr - The QR code to emit.
- */
-const whatsAppQrSocketEmitter = (
-  socket: Socket,
-  sessionId: string,
-  qr: string
-) => {
-  socket.emit(WHATSAPP_QR_SOCKET_EVENT(sessionId), qr);
-};
 
 /**
  * Starts all bots that are currently offline.
@@ -88,14 +71,21 @@ async function startBot(bot: BotState): Promise<void> {
         await updateBotStateById(bot.id, { status: BotStatus.OFFLINE });
       },
       async (message, client) => {
-        if (message.body.includes("Oi")) {
-          await client.sendMessage(message.from, "Olá!");
+        console.log(message.messages[0].message?.conversation);
+
+        if (message.messages[0].message?.conversation?.includes("Oi")) {
+          await client.sendMessage(message.messages[0].key.remoteJid!, {
+            text: "Olá",
+          });
         }
       }
     );
   } catch (error) {
     console.error(`Failed to start bot ${bot.id}`);
-    console.error(error);
+
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
   }
 }
 
@@ -121,5 +111,5 @@ async function killBot(sessionId: string): Promise<void> {
  */
 export const bot = async (): Promise<void> => {
   await startBotsOffline();
-  //await streamBots();
+  await streamBots();
 };

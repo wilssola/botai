@@ -81,10 +81,6 @@ export default function App(): React.ReactElement {
       socket.emit("event", "ping");
     });
 
-    socket.on("event", (data) => {
-      console.log(`Received event from Server (${socket.id}):`, data);
-    });
-
     socket.on("disconnect", () => {
       console.log(`WebSocket connection closed with the Server: ${socket.id}`);
     });

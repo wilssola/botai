@@ -135,7 +135,7 @@ fly redis create
 Para se conectar bastar usar a URL no seguinte padrão:
 
 ```
-redis://<user>:<password>@fly-<redis-app-name>.upstash.io:6379
+redis://<user>:<password>@fly-<redis-app-name>.upstash.websocket:6379
 ```
 
 Para acessar o Redis localmente, você pode usar o comando `fly proxy`:

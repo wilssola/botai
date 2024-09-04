@@ -6,12 +6,8 @@ npm-debug.log
 .cache
 .env
 
-.wwebjs_cache
-.wwebjs_auth
 .idea
 
 # Sentry Config File
 .sentryclirc
-
-# Sentry Config File
 .env.sentry-build-plugin

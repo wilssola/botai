@@ -23,7 +23,10 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: { nodemailer: ["nodemailer"], http: ["http"] },
+        manualChunks: {
+          nodemailer: ["nodemailer"],
+          http: ["http"],
+        },
       },
     },
   },
