@@ -25,6 +25,7 @@ const CREDS_COLLECTION_NAME = "creds";
  * @see https://github.com/pedroslopez/whatsapp-web.js/pull/3200
  */
 export class WhatsAppSession {
+  private readonly botId: string = "";
   private readonly sessionId: string = "";
 
   private initialized: boolean = false;
@@ -54,6 +55,7 @@ export class WhatsAppSession {
 
   /**
    * Creates a WhatsApp session.
+   * @param {string} botId - The bot ID.
    * @param {string} sessionId - The session ID.
    * @param {(qr: string) => Promise<void>} onQRCodeGenerated - Callback for QR code generation.
    * @param {() => Promise<void>} onAuthFailure - Callback for when authentication fails.
@@ -62,6 +64,7 @@ export class WhatsAppSession {
    * @param {(message: object, client:  ReturnType<typeof makeWASocket>) => Promise<void>} onMessage - Callback for when a message is received.
    */
   constructor(
+    botId: string,
     sessionId: string,
     onQRCodeGenerated: (qr: string) => Promise<void>,
     onAuthFailure: () => Promise<void>,
@@ -136,6 +139,14 @@ export class WhatsAppSession {
         error
       );
     }
+  }
+
+  /**
+   * Gets the bot ID.
+   * @returns {string} The bot ID.
+   */
+  getBotId(): string {
+    return this.botId;
   }
 
   /**
@@ -363,6 +374,7 @@ class WhatsAppManager {
   /**
    * Creates a new WhatsApp client session.
    * @param {string} sessionId - The session ID.
+   * @param {string} botId - The bot ID.
    * @param {(qr: string) => Promise<void>} qrCallback - Callback for QR code generation.
    * @param {() => Promise<void>} authFailureCallback - Callback for when authentication fails.
    * @param {() => Promise<void>} readyCallback - Callback for when the client is ready.
@@ -371,6 +383,7 @@ class WhatsAppManager {
    * @returns {Promise<WhatsAppSession>} The created WhatsApp session.
    */
   async createClient(
+    botId: string,
     sessionId: string,
     qrCallback: (qr: string) => Promise<void>,
     authFailureCallback: () => Promise<void>,
@@ -390,6 +403,7 @@ class WhatsAppManager {
     }
 
     const session = new WhatsAppSession(
+      botId,
       sessionId,
       qrCallback,
       authFailureCallback,

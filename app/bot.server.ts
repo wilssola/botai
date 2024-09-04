@@ -1,6 +1,7 @@
 import {BotState, BotStatus} from "@prisma/client";
 import {whatsappManager} from "~/bots/whatsapp.server";
 import {getBotStates, streamBotStates, updateBotSessionById, updateBotStateById,} from "~/models/bot.server";
+import {logger} from "~/services/logger";
 
 /**
  * Starts all bots that are currently offline.
@@ -57,6 +58,7 @@ async function startBot(bot: BotState): Promise<void> {
 
   try {
     await whatsappManager.createClient(
+      bot.id,
       bot.sessionId,
       async (qr) => {
         await updateBotSessionById(bot.sessionId, { whatsappQr: qr });
@@ -104,6 +106,15 @@ async function killBot(sessionId: string): Promise<void> {
   }
 }
 
+async function stopOnlineBots(): Promise<void> {
+  for (const session of Object.values(whatsappManager.sessions)) {
+    await session.killClient();
+    await updateBotStateById(session.getBotId(), {
+      status: BotStatus.OFFLINE,
+    });
+  }
+}
+
 /**
  * Main function to start offline bots and stream bots state changes.
  *
@@ -113,3 +124,26 @@ export const bot = async (): Promise<void> => {
   await startBotsOffline();
   await streamBots();
 };
+
+process.on("exit", async (code) => {
+  await stopOnlineBots();
+  logger.warn(`Process exit event with code ${code}`);
+});
+
+process.on("SIGTERM", async (signal) => {
+  await stopOnlineBots();
+  logger.warn(`Process ${process.pid} has been killed`, signal);
+  process.exit(0);
+});
+
+process.on("SIGINT", async (signal) => {
+  await stopOnlineBots();
+  logger.warn(`Process ${process.pid} has been interrupted`, signal);
+  process.exit(0);
+});
+
+process.on("uncaughtException", async (error) => {
+  await stopOnlineBots();
+  logger.warn(`Uncaught exception`, error.message);
+  process.exit(1);
+});
