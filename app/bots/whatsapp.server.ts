@@ -14,8 +14,8 @@ import * as process from "node:process";
 import { Logger } from "pino";
 
 const LOCK_KEY = (sessionId: string) => `lock:whatsapp-session:${sessionId}`;
-const LOCK_INTERVAL_S = 10 * 60;
-const LOCK_RENEWAL_INTERVAL_MS = 5 * 60 * 1000;
+const LOCK_INTERVAL_S = 2 * 60;
+const LOCK_RENEWAL_INTERVAL_MS = 60 * 1000;
 
 const CREDS_DATABASE_NAME = "botai-whatsapp";
 const CREDS_COLLECTION_NAME = "creds";
