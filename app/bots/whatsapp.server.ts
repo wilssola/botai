@@ -8,9 +8,10 @@ import {
 } from "baileys";
 import { MessageUpsertType, WAMessage } from "baileys/lib/Types/Message";
 import { Boom } from "@hapi/boom";
-import { logger } from "~/services/logger";
+import { logger } from "~/logger";
 import { useMongoDBAuthState } from "~/extensions/use-mongodb-auth-state";
 import * as process from "node:process";
+import { Logger } from "pino";
 
 const LOCK_KEY = (sessionId: string) => `lock:whatsapp-session:${sessionId}`;
 const LOCK_INTERVAL_S = 10 * 60;
@@ -39,6 +40,7 @@ export class WhatsAppSession {
 
   private state: AuthenticationState | undefined;
   private saveCreds: (() => Promise<void>) | undefined;
+  private removeCreds: (() => Promise<void>) | undefined;
 
   private readonly onQRCodeGenerated: (qr: string) => Promise<void>;
   private readonly onAuthFailure: () => Promise<void>;
@@ -113,25 +115,10 @@ export class WhatsAppSession {
       `Session lock acquired for session ${this.sessionId} with value ${this.lockValue}`
     );
 
-    // eslint-disable-next-line
-    const { state, saveCreds } = await useMongoDBAuthState({
-      mongodbUri: process.env.MONGO_URI!,
-      databaseName: CREDS_DATABASE_NAME,
-      collectionName: CREDS_COLLECTION_NAME,
-      sessionId: this.sessionId,
-    });
-
-    this.state = state;
-    this.saveCreds = saveCreds;
-
-    this.config = {
-      auth: this.state,
-      qrTimeout: undefined,
-      defaultQueryTimeoutMs: undefined,
-    } as UserFacingSocketConfig;
+    await this.setConfig();
 
     try {
-      this.client = makeWASocket(this.config);
+      this.client = makeWASocket(this.config!);
       this.registerEventHandlers();
       this.startLockRenewal();
     } catch (error) {
@@ -140,6 +127,27 @@ export class WhatsAppSession {
         error
       );
     }
+  }
+
+  async setConfig() {
+    // eslint-disable-next-line
+    const { state, saveCreds, removeCreds } = await useMongoDBAuthState({
+      mongodbUri: process.env.MONGO_URI!,
+      databaseName: CREDS_DATABASE_NAME,
+      collectionName: CREDS_COLLECTION_NAME,
+      sessionId: this.sessionId,
+    });
+
+    this.state = state;
+    this.saveCreds = saveCreds;
+    this.removeCreds = removeCreds;
+
+    this.config = {
+      auth: this.state,
+      qrTimeout: undefined,
+      defaultQueryTimeoutMs: undefined,
+      logger: logger as Logger | undefined,
+    } as UserFacingSocketConfig;
   }
 
   /**
@@ -187,6 +195,8 @@ export class WhatsAppSession {
 
     try {
       await this.killClient();
+
+      await this.setConfig();
 
       this.client = makeWASocket(this.config);
       this.registerEventHandlers();
@@ -265,6 +275,8 @@ export class WhatsAppSession {
 
       this.initialized = true;
 
+      logger.info(`WhatsApp client initialized for session ${this.sessionId}`);
+
       const { qr, connection, lastDisconnect } = update;
 
       if (qr) {
@@ -304,7 +316,10 @@ export class WhatsAppSession {
               break;
             case DisconnectReason.loggedOut:
               logger.warn(`Logged out on session ${this.sessionId}`);
+
+              await this.removeCreds!();
               await this.onClientDisconnected();
+              await this.restartClient();
               break;
             case DisconnectReason.timedOut:
               logger.warn(`Connection timed out on session ${this.sessionId}`);
@@ -342,9 +357,7 @@ export class WhatsAppSession {
           }
         }
       } else if (connection === "open") {
-        logger.info(
-          `WhatsApp client initialized for session ${this.sessionId}`
-        );
+        logger.info(`WhatsApp client connected for session ${this.sessionId}`);
 
         await this.onClientReady();
       }

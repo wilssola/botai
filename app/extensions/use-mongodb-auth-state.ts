@@ -31,6 +31,7 @@ export const useMongoDBAuthState = async (
 ): Promise<{
   state: AuthenticationState;
   saveCreds: () => Promise<void>;
+  removeCreds: () => Promise<void>;
 }> => {
   const client = new MongoClient(config.mongodbUri, {
     connectTimeoutMS: 15000,
@@ -136,6 +137,9 @@ export const useMongoDBAuthState = async (
     },
     saveCreds: async () => {
       await writeData(creds, `creds-${sessionId}`);
+    },
+    removeCreds: async () => {
+      await removeData(`creds-${sessionId}`);
     },
   };
 };

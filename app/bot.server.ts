@@ -7,7 +7,7 @@ import {
   updateBotSessionById,
   updateBotStateById,
 } from "~/models/bot.server";
-import {logger} from "~/services/logger";
+import {logger} from "~/logger";
 
 /**
  * Starts all bots enabled.

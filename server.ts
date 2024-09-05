@@ -2,7 +2,7 @@ import "./instrumentation";
 import { createServer } from "http";
 import { handleBot } from "~/bot.server";
 import { app } from "./app";
-import { logger } from "~/services/logger";
+import { logger } from "~/logger";
 import { Server } from "socket.io";
 
 export const APP_URL = process.env.APP_URL || "0.0.0.0";
