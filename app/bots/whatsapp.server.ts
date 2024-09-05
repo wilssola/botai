@@ -1,23 +1,39 @@
-import { redis } from "~/services/redis.server";
-import { v6 } from "uuid";
-import {
-  AuthenticationState,
-  DisconnectReason,
-  makeWASocket,
-  UserFacingSocketConfig,
-} from "baileys";
-import { MessageUpsertType, WAMessage } from "baileys/lib/Types/Message";
-import { Boom } from "@hapi/boom";
-import { logger } from "~/logger";
-import { useMongoDBAuthState } from "~/extensions/use-mongodb-auth-state";
-import * as process from "node:process";
-import { Logger } from "pino";
+import {redis} from "~/services/redis.server";
+import {v6} from "uuid";
+import {AuthenticationState, DisconnectReason, makeWASocket, UserFacingSocketConfig,} from "baileys";
+import {MessageUpsertType, WAMessage} from "baileys/lib/Types/Message";
+import {Boom} from "@hapi/boom";
+import {logger} from "~/logger";
+import {useMongoDBAuthState} from "~/extensions/use-mongodb-auth-state";
+import {Logger} from "pino";
 
-const LOCK_KEY = (sessionId: string) => `lock:whatsapp-session:${sessionId}`;
+/**
+ * Creates a Redis key for a WhatsApp session lock.
+ * @param sessionId - The ID of the WhatsApp session.
+ * @returns A Redis key in the format "lock:whatsapp-session:<sessionId>".
+ */
+const LOCK_KEY = (sessionId: string): string => {
+  return `lock:whatsapp-session:${sessionId}`;
+};
+
+/**
+ * The interval in seconds to lock the session.
+ */
 const LOCK_INTERVAL_S = 2 * 60;
+
+/**
+ * The interval in milliseconds to renew the lock.
+ */
 const LOCK_RENEWAL_INTERVAL_MS = 60 * 1000;
 
+/**
+ * The name of the database to store WhatsApp credentials.
+ */
 const CREDS_DATABASE_NAME = "botai-whatsapp";
+
+/**
+ * The name of the collection to store WhatsApp credentials.
+ */
 const CREDS_COLLECTION_NAME = "creds";
 
 /**
