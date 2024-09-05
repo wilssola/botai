@@ -145,27 +145,31 @@ async function stopBots(): Promise<void> {
 export const handleBot = async (): Promise<void> => {
   await startBots();
   await streamBots();
+
+  handleProcessEnd();
 };
 
-process.on("exit", async (code) => {
-  await stopBots();
-  logger.warn(`Process exit event with code ${code}`);
-});
+function handleProcessEnd() {
+  process.on("exit", async (code) => {
+    await stopBots();
+    logger.warn(`Process exit event with code ${code}`);
+  });
 
-process.on("SIGTERM", async (signal) => {
-  await stopBots();
-  logger.warn(`Process ${process.pid} has been killed`, signal);
-  process.exit(0);
-});
+  process.on("SIGTERM", async (signal) => {
+    await stopBots();
+    logger.warn(`Process ${process.pid} has been killed`, signal);
+    process.exit(0);
+  });
 
-process.on("SIGINT", async (signal) => {
-  await stopBots();
-  logger.warn(`Process ${process.pid} has been interrupted`, signal);
-  process.exit(0);
-});
+  process.on("SIGINT", async (signal) => {
+    await stopBots();
+    logger.warn(`Process ${process.pid} has been interrupted`, signal);
+    process.exit(0);
+  });
 
-process.on("uncaughtException", async (error) => {
-  await stopBots();
-  logger.warn(`Uncaught exception`, error.message);
-  process.exit(1);
-});
+  process.on("uncaughtException", async (error) => {
+    await stopBots();
+    logger.warn(`Uncaught exception`, error.message);
+    //process.exit(1);
+  });
+}
