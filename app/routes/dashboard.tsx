@@ -1,4 +1,4 @@
-import {LoaderFunction} from "@remix-run/node";
+import {LoaderFunction, LoaderFunctionArgs} from "@remix-run/node";
 import React, {useEffect, useState} from "react";
 import {useEventSource} from "remix-utils/sse/react";
 import {useSocket} from "~/context";
@@ -18,15 +18,13 @@ import {BotSession} from "@prisma/client";
 
 /**
  * Loader function to handle the initial data fetching for the dashboard page.
- * @param {object} param0 - The request object.
- * @param {Request} param0.request - The request object.
+ * @param {LoaderFunctionArgs} args - The request object.
+ * @param {Request} args.request - The request object.
  * @returns {Promise<object>} The environment variables.
  */
 export const loader: LoaderFunction = async ({
   request,
-}: {
-  request: Request;
-}): Promise<object> => {
+}: LoaderFunctionArgs): Promise<object> => {
   await sessionLoader(request, { failureRedirect: LOGIN_PATH });
 
   await checkMailAuthVerified(request);

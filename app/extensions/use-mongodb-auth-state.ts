@@ -2,7 +2,7 @@ import {Document, MongoClient} from "mongodb";
 import {AuthenticationCreds, AuthenticationState, SignalDataSet, SignalDataTypeMap,} from "baileys/lib/Types";
 import {initAuthCreds} from "baileys/lib/Utils/auth-utils";
 import {BufferJSON} from "baileys/lib/Utils/generics";
-import WAProto from "baileys/WAProto";
+import {WAProto} from "baileys/lib/Types/Message";
 
 /**
  * Configuration object for MongoDB authentication.
@@ -34,6 +34,7 @@ export const useMongoDBAuthState = async (
 }> => {
   const client = new MongoClient(config.mongodbUri, {
     connectTimeoutMS: 15000,
+    retryWrites: true,
   });
 
   const sessionId = config.sessionId;
@@ -41,6 +42,11 @@ export const useMongoDBAuthState = async (
   const db = client.db(config.databaseName);
   const collection = db.collection(config.collectionName);
 
+  /**
+   * Ensures that the collection exists.
+   *
+   * @private
+   */
   const ensureCollectionExists = async () => {
     const collections = await db
       .listCollections({ name: config.collectionName })
@@ -52,6 +58,13 @@ export const useMongoDBAuthState = async (
 
   await ensureCollectionExists();
 
+  /**
+   * Writes data to the collection.
+   *
+   * @param data - The data to write.
+   * @param key - The key of the document.
+   * @private
+   */
   async function writeData(data: unknown, key: string) {
     await collection.replaceOne(
       { _id: key } as Document,
@@ -60,12 +73,25 @@ export const useMongoDBAuthState = async (
     );
   }
 
+  /**
+   * Reads data from the collection.
+   *
+   * @param key - The key of the document.
+   * @returns The data from the collection.
+   * @private
+   */
   async function readData(key: string) {
     const data = await collection.findOne({ _id: key } as Document);
     const creds = JSON.stringify(data);
     return JSON.parse(creds, BufferJSON.reviver);
   }
 
+  /**
+   * Removes data from the collection.
+   *
+   * @param key - The key of the document.
+   * @private
+   */
   const removeData = async (key: string) => {
     await collection.deleteOne({ _id: key } as Document);
   };
@@ -83,8 +109,7 @@ export const useMongoDBAuthState = async (
             ids.map(async (id) => {
               let value = await readData(`${type}-${id}-${sessionId}`);
               if (type === "app-state-sync-key" && value) {
-                value =
-                  WAProto.proto.Message.AppStateSyncKeyData.fromObject(value);
+                value = WAProto.Message.AppStateSyncKeyData.fromObject(value);
               }
 
               data[id] = value;

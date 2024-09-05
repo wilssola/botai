@@ -9,7 +9,7 @@ import {
 import { MessageUpsertType, WAMessage } from "baileys/lib/Types/Message";
 import { Boom } from "@hapi/boom";
 import { logger } from "~/services/logger";
-import { useMongoDBAuthState } from "~/extension/use-mongodb-auth-state";
+import { useMongoDBAuthState } from "~/extensions/use-mongodb-auth-state";
 import * as process from "node:process";
 
 const LOCK_KEY = (sessionId: string) => `lock:whatsapp-session:${sessionId}`;
@@ -79,6 +79,7 @@ export class WhatsAppSession {
       client: ReturnType<typeof makeWASocket>
     ) => Promise<void>
   ) {
+    this.botId = botId;
     this.sessionId = sessionId;
     this.onQRCodeGenerated = onQRCodeGenerated;
     this.onAuthFailure = onAuthFailure;
@@ -211,19 +212,19 @@ export class WhatsAppSession {
     this.client.end(new Error(`Killing client for session ${this.sessionId}`));
 
     this.client = null;
-    clearInterval(this.lockRenewalInterval!);
+    if (this.lockRenewalInterval) {
+      clearInterval(this.lockRenewalInterval);
+    }
 
     logger.info(`WhatsApp client killed for session ${this.sessionId}`);
   }
 
   /**
-   * Starts the lock renewal interval.
-   * This is used to keep the session locked while the client is running.
-   * This is necessary to prevent multiple servers from trying to initialize the same session.
-   * This is also used to prevent the session from being locked indefinitely if the client crashes.
+   * Starts the lock renewal interval to keep the session locked while the client is running.
+   * This prevents multiple servers from initializing the same session and avoids indefinite locking if the client crashes.
    * The lock is renewed by setting the TTL of the lock key to the lock interval.
-   * The lock is checked every lock renewal interval to see if it has been modified.
-   * If the lock not is equals to the current value, the lock renewal interval is cleared.
+   * Every lock renewal interval, the lock is checked to see if it has been modified.
+   * If the lock value is different from the current value, the lock renewal interval is cleared.
    * @see https://redis.io/docs/latest/develop/use/patterns/distributed-locks/
    * @private
    */
@@ -365,7 +366,7 @@ export class WhatsAppSession {
  * Class representing a manager for WhatsApp sessions.
  */
 class WhatsAppManager {
-  public readonly sessions: { [key: string]: WhatsAppSession } = {};
+  private readonly sessions: { [key: string]: WhatsAppSession } = {};
 
   constructor() {
     return this;
@@ -420,12 +421,35 @@ class WhatsAppManager {
   }
 
   /**
+   * Gets all WhatsApp client sessions.
+   * @returns {WhatsAppSession[]} The WhatsApp sessions.
+   */
+  getClients(): WhatsAppSession[] {
+    return Object.values(this.sessions);
+  }
+
+  /**
    * Gets a WhatsApp client session by session ID.
    * @param {string} sessionId - The session ID.
    * @returns {WhatsAppSession | undefined} The WhatsApp session.
    */
   getClient(sessionId: string): WhatsAppSession | undefined {
     return this.sessions[sessionId];
+  }
+
+  /**
+   * Kills a WhatsApp client session by session ID.
+   * @param {string} sessionId - The session ID.
+   * @returns {Promise<void>} A promise that resolves when the session is killed.
+   */
+  async killClient(sessionId: string): Promise<void> {
+    const session = this.sessions[sessionId];
+    if (!session) {
+      return;
+    }
+
+    await session.killClient();
+    delete this.sessions[sessionId];
   }
 }
 

@@ -1,31 +1,46 @@
-import {
-  BotCommand,
-  BotSession,
-  BotState,
-  BotStatus,
-  User,
-} from "@prisma/client";
-import { db, enhancedb } from "~/services/db.server";
+import {BotCommand, BotSession, BotState, BotStatus, User,} from "@prisma/client";
+import {db, enhancedb} from "~/services/db.server";
 
+/**
+ * Creates a new bot session for the user with the given ID.
+ *
+ * @param {string} userId - The ID of the user to create the bot session for.
+ * @returns The newly created bot session.
+ */
 export async function createBotSessionByUserId(userId: User["id"]) {
   return await db.botSession.create({
     data: {
+      // Default to enabled
       enabled: true,
+
+      // Create a new bot state for the session
       state: {
         create: {
+          // Default to offline
           status: BotStatus.OFFLINE,
         },
       },
+
+      // Connect the user to the bot session
       user: {
         connect: { id: userId },
       },
     },
+
+    // Include the bot state in the return value
     include: {
       state: true,
     },
   });
 }
 
+/**
+ * Finds a bot session by the given user ID.
+ *
+ * @param {string} userId - The ID of the user to find the bot session for.
+ * @param {Request} [userReq] - The request to use for authentication.
+ * @returnsThe bot session, or null if none was found.
+ */
 export async function getBotSessionByUserId(userId: string, userReq?: Request) {
   const query = { where: { userId }, include: { state: true } };
 
@@ -156,13 +171,26 @@ export async function getBotStates(status?: BotStatus) {
       });
 }
 
+/**
+ * Gets a stream of all bot states.
+ * @returns A stream of all bot states.
+ */
 export async function streamBotStates() {
   return await db.botState.stream();
 }
 
+/**
+ * Updates a bot state by ID.
+ * @param {string} id - The ID of the bot state to update.
+ * @param {Partial<BotState>} updates - The updates to apply to the bot state.
+ * @returns The updated bot state.
+ */
 export async function updateBotStateById(
   id: string,
   updates: Partial<BotState>
 ) {
-  return db.botState.update({ where: { id: id }, data: updates });
+  return db.botState.update({
+    where: { id },
+    data: updates,
+  });
 }
