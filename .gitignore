@@ -11,3 +11,5 @@ npm-debug.log
 # Sentry Config File
 .sentryclirc
 .env.sentry-build-plugin
+
+vite.config.ts.timestamp-*.mjs
