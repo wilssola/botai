@@ -146,10 +146,10 @@ export const handleBot = async (): Promise<void> => {
   await startBots();
   await streamBots();
 
-  handleProcessEnd();
+  handleBotProcess();
 };
 
-function handleProcessEnd() {
+function handleBotProcess() {
   process.on("exit", async (code) => {
     await stopBots();
     logger.warn(`Process exit event with code ${code}`);
@@ -170,6 +170,6 @@ function handleProcessEnd() {
   process.on("uncaughtException", async (error) => {
     await stopBots();
     logger.warn(`Uncaught exception`, error.message);
-    //process.exit(1);
+    process.exit(1);
   });
 }
