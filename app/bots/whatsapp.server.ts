@@ -283,14 +283,14 @@ export class WhatsAppSession {
       return;
     }
 
+    this.initialized = true;
+
+    logger.info(`WhatsApp client initialized for session ${this.sessionId}`);
+
     this.client.ev.on("connection.update", async (update) => {
       if (!this.client) {
         return;
       }
-
-      this.initialized = true;
-
-      logger.info(`WhatsApp client initialized for session ${this.sessionId}`);
 
       const { qr, connection, lastDisconnect } = update;
 
