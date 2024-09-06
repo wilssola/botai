@@ -88,8 +88,8 @@ model BotState {
 /// @@allow('all', auth().id == session.userId && session.user.mailAuth.verified == true)
 model BotCommand {
   id        String       @id() @default(dbgenerated("gen_random_uuid()"))
-  input     String?
-  output    String
+  input     String[]
+  output    String[]
   enableAI  Boolean
   promptAI  String?
   priority  Int

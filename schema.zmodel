@@ -107,8 +107,8 @@ model BotState {
 model BotCommand {
     id        String       @id @default(dbgenerated("gen_random_uuid()"))
 
-    input     String?
-    output    String
+    input     String[]
+    output    String[]
     enableAI  Boolean
     promptAI  String?
     priority  Int

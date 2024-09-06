@@ -89,7 +89,10 @@ async function startBot(bot: BotState): Promise<void> {
       },
       async (message, client) => {
         console.log(message.messages[0].message?.conversation);
-        if (message.messages[0].message?.conversation?.includes("Oi")) {
+        if (
+          !message.messages[0].key.fromMe &&
+          message.messages[0].message?.conversation?.includes("Oi")
+        ) {
           await client.sendMessage(message.messages[0].key.remoteJid!, {
             text: "Olá",
           });

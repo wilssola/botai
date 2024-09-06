@@ -22,6 +22,8 @@ const client = new MongoClient(process.env.MONGO_URI!, {
   retryWrites: true,
 });
 
+await client.connect();
+
 /**
  * Creates and returns an authentication object that stores and reads data in MongoDB.
  *
@@ -37,7 +39,6 @@ export const useMongoDBAuthState = async (
   removeCreds: () => Promise<void>;
 }> => {
   const sessionId = config.sessionId;
-  await client.connect();
   const db = client.db(config.databaseName);
   const collection = db.collection(config.collectionName);
 
