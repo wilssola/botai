@@ -7,19 +7,17 @@ import {WAProto} from "baileys/lib/Types/Message";
 /**
  * Configuration object for MongoDB authentication.
  *
- * @param {string} mongodbUri - The MongoDB connection URI.
  * @param {string} databaseName - The name of the MongoDB database.
  * @param {string} collectionName - The name of the MongoDB collection.
  * @param {string} sessionId - The name of the Instance that you want to give to identify the connection, allowing multi-sessions in MongoDB.
  */
 type MongoDBAuthConfig = {
-  mongodbUri: string;
   databaseName: string;
   collectionName: string;
   sessionId: string;
 };
 
-const client = new MongoClient(config.mongodbUri, {
+const client = new MongoClient(process.env.MONGO_URI!, {
   connectTimeoutMS: 15000,
   retryWrites: true,
 });

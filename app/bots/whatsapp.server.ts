@@ -148,7 +148,6 @@ export class WhatsAppSession {
   async setConfig() {
     // eslint-disable-next-line
     const { state, saveCreds, removeCreds } = await useMongoDBAuthState({
-      mongodbUri: process.env.MONGO_URI!,
       databaseName: CREDS_DATABASE_NAME,
       collectionName: CREDS_COLLECTION_NAME,
       sessionId: this.sessionId,
