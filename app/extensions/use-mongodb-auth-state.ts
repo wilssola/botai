@@ -19,6 +19,11 @@ type MongoDBAuthConfig = {
   sessionId: string;
 };
 
+const client = new MongoClient(config.mongodbUri, {
+  connectTimeoutMS: 15000,
+  retryWrites: true,
+});
+
 /**
  * Creates and returns an authentication object that stores and reads data in MongoDB.
  *
@@ -33,11 +38,6 @@ export const useMongoDBAuthState = async (
   saveCreds: () => Promise<void>;
   removeCreds: () => Promise<void>;
 }> => {
-  const client = new MongoClient(config.mongodbUri, {
-    connectTimeoutMS: 15000,
-    retryWrites: true,
-  });
-
   const sessionId = config.sessionId;
   await client.connect();
   const db = client.db(config.databaseName);
