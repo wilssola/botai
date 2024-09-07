@@ -1,4 +1,4 @@
-import { CheckIcon } from "@heroicons/react/20/solid";
+import { FaCheck } from "react-icons/fa";
 import { REGISTER_PATH } from "~/routes";
 import Header from "~/components/Header";
 import { Link } from "@remix-run/react";
@@ -41,7 +41,7 @@ export default function Pricing() {
               <ul className="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 text-gray-600 sm:grid-cols-2 sm:gap-6">
                 {freePlanFeatures.map((feature) => (
                   <li key={feature} className="flex gap-x-3">
-                    <CheckIcon
+                    <FaCheck
                       aria-hidden="true"
                       className="h-6 w-5 flex-none text-blue-600"
                     />

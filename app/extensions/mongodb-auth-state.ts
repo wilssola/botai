@@ -31,7 +31,7 @@ await client.connect();
  * @param {MongoDBAuthConfig} config - The MongoDB authentication configuration.
  * @returns {Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }>} The authentication object.
  */
-export const useMongoDBAuthState = async (
+export const mongodbAuthState = async (
   config: MongoDBAuthConfig
 ): Promise<{
   state: AuthenticationState;

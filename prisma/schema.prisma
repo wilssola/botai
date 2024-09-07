@@ -88,10 +88,11 @@ model BotState {
 /// @@allow('all', auth().id == session.userId && session.user.mailAuth.verified == true)
 model BotCommand {
   id        String       @id() @default(dbgenerated("gen_random_uuid()"))
-  input     String[]
-  output    String[]
-  enableAI  Boolean
-  promptAI  String?
+  name      String
+  inputs    String[]
+  output    String
+  enableAi  Boolean
+  promptAi  String?
   priority  Int
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt()
@@ -101,6 +102,6 @@ model BotCommand {
   sessionId String
   session   BotSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
-  @@unique([input, sessionId])
+  @@unique([inputs, sessionId])
   @@unique([priority, sessionId])
 }

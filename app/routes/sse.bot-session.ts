@@ -4,10 +4,10 @@ import { interval } from "remix-utils/timers";
 import { getUserSession } from "~/services/auth.server";
 import { getBotSessionByUserId } from "~/models/bot.server";
 
-export const WHATSAPP_QR_SSE_EVENT = "whatsapp-qr";
+export const BOT_SESSION_SSE_EVENT = "bot-session";
 
-const WHATSAPP_QR_INTERVAL = 5 * 1000;
-const WHATSAPP_QR_RESET_INTERVAL = 2 * WHATSAPP_QR_INTERVAL;
+const SEND_INTERVAL = 5 * 1000;
+const RESET_INTERVAL = 2 * SEND_INTERVAL;
 
 export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   return eventStream(request.signal, function setup(send) {
@@ -20,11 +20,11 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
       let time = 0;
       let botSession = await getBotSessionByUserId(user.id, request);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      for await (const _ of interval(WHATSAPP_QR_INTERVAL, {
+      for await (const _ of interval(SEND_INTERVAL, {
         signal: request.signal,
       })) {
-        time += WHATSAPP_QR_INTERVAL;
-        if (time >= WHATSAPP_QR_RESET_INTERVAL) {
+        time += SEND_INTERVAL;
+        if (time >= RESET_INTERVAL) {
           botSession = await getBotSessionByUserId(user.id, request);
           time = 0;
         }
@@ -34,8 +34,8 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
         }
 
         send({
-          event: WHATSAPP_QR_SSE_EVENT,
-          data: botSession?.whatsappQr ?? "",
+          event: BOT_SESSION_SSE_EVENT,
+          data: JSON.stringify(botSession),
         });
       }
     }

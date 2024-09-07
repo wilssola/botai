@@ -9,10 +9,16 @@ import {
   PopoverGroup,
   PopoverPanel,
 } from "@headlessui/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  FaBars,
+  FaCreditCard,
+  FaEnvelope,
+  FaStore,
+  FaWhatsapp,
+} from "react-icons/fa";
+import { FaX } from "react-icons/fa6";
 import { Link, NavLink } from "@remix-run/react";
 import { createElement, useState } from "react";
-import { FaCreditCard, FaEnvelope, FaStore, FaWhatsapp } from "react-icons/fa";
 import Logo from "./Logo";
 import {
   FEATURES_PATH,
@@ -90,7 +96,7 @@ export default function Header() {
               className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
             >
               <span className="sr-only">Menu</span>
-              <Bars3Icon aria-hidden="true" className="h-6 w-6" />
+              <FaBars aria-hidden="true" className="h-6 w-6" />
             </button>
           </div>
 
@@ -192,7 +198,7 @@ export default function Header() {
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"
               >
                 <span className="sr-only">Menu</span>
-                <XMarkIcon aria-hidden="true" className="h-6 w-6" />
+                <FaX aria-hidden="true" className="h-6 w-6" />
               </button>
             </div>
             <div className="mt-6 flow-root">

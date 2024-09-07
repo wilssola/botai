@@ -51,4 +51,4 @@ export const DASHBOARD_PATH = "/dashboard";
 /**
  * WhatsApp QR SSE path constant.
  */
-export const WHATSAPP_QR_SSE_PATH = "/sse/whatsapp-qr";
+export const BOT_SESSION_SSE_PATH = "/sse/bot-session";

@@ -1,5 +1,16 @@
-import {BotCommand, BotSession, BotState, BotStatus, User,} from "@prisma/client";
-import {db, enhancedb} from "~/services/db.server";
+import { BotSession, BotState, BotStatus, Prisma, User } from "@prisma/client";
+import { db, enhancedb } from "~/services/db.server";
+
+export type BotSessionFull = Prisma.BotSessionGetPayload<{
+  include: {
+    state: true;
+    commands: {
+      include: {
+        children: true;
+      };
+    };
+  };
+}>;
 
 /**
  * Creates a new bot session for the user with the given ID.
@@ -103,25 +114,33 @@ export async function updateBotSessionById(
 
 export async function createBotCommandBySessionId(
   sessionId: string,
-  command: BotCommand,
+  name: string,
+  inputs: string[],
+  output: string,
+  enableAi: boolean,
+  promptAi: string,
+  priority: number,
   userReq?: Request
 ) {
   const query = {
-    where: {
-      id: sessionId,
-    },
     data: {
-      commands: {
-        create: command,
+      name,
+      inputs,
+      output,
+      enableAi,
+      promptAi,
+      priority,
+      session: {
+        connect: { id: sessionId },
       },
     },
   };
 
   if (userReq) {
-    return await (await enhancedb(userReq)).botSession.update(query);
+    return (await enhancedb(userReq)).botCommand.create(query);
   }
 
-  return await db.botSession.update(query);
+  return db.botCommand.create(query);
 }
 
 export async function getBotCommandsBySessionId(

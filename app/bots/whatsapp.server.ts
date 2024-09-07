@@ -4,7 +4,7 @@ import {AuthenticationState, DisconnectReason, makeWASocket, UserFacingSocketCon
 import {MessageUpsertType, WAMessage} from "baileys/lib/Types/Message";
 import {Boom} from "@hapi/boom";
 import {logger} from "~/logger";
-import {useMongoDBAuthState} from "~/extensions/use-mongodb-auth-state";
+import {mongodbAuthState} from "~/extensions/mongodb-auth-state";
 import {Logger} from "pino";
 
 /**
@@ -146,8 +146,7 @@ export class WhatsAppSession {
   }
 
   async setConfig() {
-    // eslint-disable-next-line
-    const { state, saveCreds, removeCreds } = await useMongoDBAuthState({
+    const { state, saveCreds, removeCreds } = await mongodbAuthState({
       databaseName: CREDS_DATABASE_NAME,
       collectionName: CREDS_COLLECTION_NAME,
       sessionId: this.sessionId,

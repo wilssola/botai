@@ -7,12 +7,14 @@ import {
   MenuItem,
   MenuItems,
 } from "@headlessui/react";
-import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { FaBars, FaBell } from "react-icons/fa";
+import { FaX } from "react-icons/fa6";
 import { DASHBOARD_PATH } from "~/routes";
 import Avvvatars from "avvvatars-react";
 import { User } from "@prisma/client";
 import Logo from "~/components/Logo";
 import { NavLink } from "@remix-run/react";
+import { UserSession } from "~/services/auth.server";
 
 const navigation = [
   { name: "Painel", href: DASHBOARD_PATH },
@@ -27,7 +29,7 @@ const userNavigation = [
 ];
 
 type HeaderProps = {
-  user: User;
+  user: User | UserSession;
 };
 
 export default function Header(props: HeaderProps) {
@@ -63,17 +65,19 @@ export default function Header(props: HeaderProps) {
                   >
                     <span className="absolute -inset-1.5" />
                     <span className="sr-only">Notificações</span>
-                    <BellIcon aria-hidden="true" className="h-6 w-6" />
+                    <FaBell aria-hidden="true" className="h-6 w-6" />
                   </button>
 
-                  {/* Profile dropdown */}
+                  {/* Profile Dropdown */}
                   <Menu as="div" className="relative ml-3">
                     <div>
                       <MenuButton className="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                         <span className="absolute -inset-1.5" />
                         <span className="sr-only">Usuário</span>
                         <div className="h-8 w-8 rounded-full">
-                          <Avvvatars value={props.user.email} />
+                          <Avvvatars
+                            value={props.user ? props.user.email : ""}
+                          />
                         </div>
                       </MenuButton>
                     </div>
@@ -96,15 +100,15 @@ export default function Header(props: HeaderProps) {
                 </div>
               </div>
               <div className="-mr-2 flex md:hidden">
-                {/* Mobile menu button */}
+                {/* Mobile Menu */}
                 <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                   <span className="absolute -inset-0.5" />
                   <span className="sr-only">Menu</span>
-                  <Bars3Icon
+                  <FaBars
                     aria-hidden="true"
                     className="block h-6 w-6 group-data-[open]:hidden"
                   />
-                  <XMarkIcon
+                  <FaX
                     aria-hidden="true"
                     className="hidden h-6 w-6 group-data-[open]:block"
                   />
@@ -130,15 +134,15 @@ export default function Header(props: HeaderProps) {
               <div className="flex items-center px-5">
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full">
-                    <Avvvatars value={props.user.email} />
+                    <Avvvatars value={props.user ? props.user.email : ""} />
                   </div>
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium leading-none text-white">
-                    {props.user.username}
+                    {props.user ? props.user.username : ""}
                   </div>
                   <div className="text-sm font-medium leading-none text-gray-400">
-                    {props.user.email}
+                    {props.user ? props.user.email : ""}
                   </div>
                 </div>
                 <button
@@ -147,7 +151,7 @@ export default function Header(props: HeaderProps) {
                 >
                   <span className="absolute -inset-1.5" />
                   <span className="sr-only">Notificações</span>
-                  <BellIcon aria-hidden="true" className="h-6 w-6" />
+                  <FaBell aria-hidden="true" className="h-6 w-6" />
                 </button>
               </div>
               <div className="mt-3 space-y-1 px-2">

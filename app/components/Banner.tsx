@@ -1,4 +1,4 @@
-import { XMarkIcon } from "@heroicons/react/20/solid";
+import { FaX } from "react-icons/fa6";
 import { Link } from "@remix-run/react";
 import { useState } from "react";
 
@@ -46,7 +46,7 @@ export default function Banner() {
           className="-m-3 p-3 focus-visible:outline-offset-[-4px]"
         >
           <span className="sr-only">Fechar</span>
-          <XMarkIcon aria-hidden="true" className="h-5 w-5 text-gray-900" />
+          <FaX aria-hidden="true" className="h-5 w-5 text-gray-900" />
         </button>
       </div>
     </div>
