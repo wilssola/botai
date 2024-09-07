@@ -9,11 +9,12 @@ import { useState } from "react";
 // @ts-expect-error
 import { Tag, WithContext as ReactTags } from "react-tag-input";
 import { MAX_TAGS_INPUT } from "~/constants/validation";
+import { Form } from "@remix-run/react";
 
 export type BotCommandProps = {
   open: boolean;
   setOpen: () => void;
-  type: "create" | "edit" | "delete";
+  mode: "create" | "edit" | "delete";
   id?: string;
   sessionId?: string;
   name?: string;
@@ -77,23 +78,23 @@ export default function BotCommandForm(props: BotCommandProps) {
             transition
             className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95"
           >
-            <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-              <div className="sm:items-start">
-                <div className="mt-3 text-center sm:ml-2 sm:mr-2 sm:mt-0 sm:text-left">
-                  <DialogTitle
-                    as="h3"
-                    className="text-base font-semibold leading-6 text-gray-900"
-                  >
-                    Comando
-                  </DialogTitle>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      {props.id ? "Edite o comando" : "Crie um novo comando"}
-                    </p>
-                  </div>
-                  <form>
+            <Form method="POST">
+              <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div className="sm:items-start">
+                  <div className="mt-3 text-center sm:ml-2 sm:mr-2 sm:mt-0 sm:text-left">
+                    <DialogTitle
+                      as="h3"
+                      className="text-base font-semibold leading-6 text-gray-900"
+                    >
+                      Comando
+                    </DialogTitle>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        {props.id ? "Edite o comando" : "Crie um novo comando"}
+                      </p>
+                    </div>
                     <div className="mt-6 space-y-4 w-full">
-                      <input id="type" name="type" value={props.type} hidden />
+                      <input id="mode" name="mode" value={props.mode} hidden />
                       <input
                         id="name"
                         name="name"
@@ -109,8 +110,6 @@ export default function BotCommandForm(props: BotCommandProps) {
                         value={inputs.map((input) => input.text)}
                       />
                       <ReactTags
-                        id="tags"
-                        name="tags"
                         tags={inputs}
                         handleDelete={handleDelete}
                         handleAddition={handleAddition}
@@ -138,7 +137,7 @@ export default function BotCommandForm(props: BotCommandProps) {
                           clearAll:
                             "sm:text-sm text-gray-500 bg-red-500 rounded-md p-2 text-white ml-2 mr-2 min-w-fit",
                         }}
-                        placeholder="Insira os comandos"
+                        placeholder="Insira um comando e aperte Enter"
                         maxTags={MAX_TAGS_INPUT}
                       />
                       <textarea
@@ -197,31 +196,31 @@ export default function BotCommandForm(props: BotCommandProps) {
                         draggable="false"
                       ></textarea>
                     </div>
-                  </form>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-              <button
-                type="button"
-                data-autofocus="true"
-                onClick={props.setOpen}
-                className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 bg-green-600 sm:ml-3 sm:w-auto"
-              >
-                {props.type === "delete"
-                  ? "Deletar"
-                  : props.type === "create"
-                  ? "Criar"
-                  : "Salvar"}
-              </button>
-              <button
-                type="button"
-                onClick={props.setOpen}
-                className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-              >
-                Cancelar
-              </button>
-            </div>
+              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <button
+                  type="submit"
+                  data-autofocus="true"
+                  //onSubmit={props.setOpen}
+                  className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 bg-green-600 sm:ml-3 sm:w-auto"
+                >
+                  {props.mode === "delete"
+                    ? "Deletar"
+                    : props.mode === "create"
+                    ? "Criar"
+                    : "Salvar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={props.setOpen}
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </Form>
           </DialogPanel>
         </div>
       </div>

@@ -110,9 +110,9 @@ model BotCommand {
     name      String
     inputs    String[]
     output    String
-    enableAi  Boolean
+    enableAi  Boolean      @default(false)
     promptAi  String?
-    priority  Int
+    priority  Int          @default(0)
 
     createdAt DateTime     @default(now())
     updatedAt DateTime     @updatedAt
@@ -123,9 +123,6 @@ model BotCommand {
 
     sessionId String
     session   BotSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-    @@unique([inputs, sessionId])
-    @@unique([priority, sessionId])
 
     @@allow('all', auth().id == session.userId && session.user.mailAuth.verified == true)
 }

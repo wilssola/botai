@@ -1,4 +1,11 @@
-import { BotSession, BotState, BotStatus, Prisma, User } from "@prisma/client";
+import {
+  BotCommand,
+  BotSession,
+  BotState,
+  BotStatus,
+  Prisma,
+  User,
+} from "@prisma/client";
 import { db, enhancedb } from "~/services/db.server";
 
 export type BotSessionFull = Prisma.BotSessionGetPayload<{
@@ -141,6 +148,71 @@ export async function createBotCommandBySessionId(
   }
 
   return db.botCommand.create(query);
+}
+
+export async function createBotSubCommandByCommandId(
+  sessionId: string,
+  commandId: string,
+  name: string,
+  inputs: string[],
+  output: string,
+  enableAi: boolean,
+  promptAi: string,
+  priority: number,
+  userReq?: Request
+) {
+  const query = {
+    data: {
+      name,
+      inputs,
+      output,
+      enableAi,
+      promptAi,
+      priority,
+      parent: {
+        connect: { id: commandId },
+      },
+      session: {
+        connect: { id: sessionId },
+      },
+    },
+  };
+
+  if (userReq) {
+    return (await enhancedb(userReq)).botCommand.create(query);
+  }
+
+  return db.botCommand.create(query);
+}
+
+export async function updateBotCommandById(
+  commandId: string,
+  updates: Partial<BotCommand>,
+  userReq?: Request
+) {
+  const query = {
+    where: { id: commandId },
+    data: updates,
+  };
+
+  if (userReq) {
+    return (await enhancedb(userReq)).botCommand.update(query);
+  }
+
+  return db.botCommand.update(query);
+}
+
+export async function deleteBotCommandById(
+  commandId: string,
+  userReq?: Request
+) {
+  const query = { where: { id: commandId } };
+
+  if (userReq) {
+    return (await enhancedb(userReq)).botCommand.delete(query);
+  }
+
+  return db.botCommand.delete(query);
 }
 
 export async function getBotCommandsBySessionId(

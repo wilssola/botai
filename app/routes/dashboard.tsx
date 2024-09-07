@@ -30,6 +30,7 @@ import BotCommandForm, {
 import z from "zod";
 import { HTTPStatus } from "~/enums/http-status";
 import { ResponseActionData } from "~/types/response-action-data";
+import { logger } from "~/logger";
 
 type LoaderData = {
   ENV: TypedResponse<EnvLoaderData>;
@@ -63,16 +64,17 @@ export const loader: LoaderFunction = async ({
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
+
   const formPayload = Object.fromEntries(formData);
 
   const commandSchema = z.object({
-    type: z.string().min(1),
+    mode: z.string().min(1),
     name: z.string().min(1),
-    inputs: z.array(z.string()).default([]),
+    inputs: z.string().min(1),
     output: z.string().min(1),
-    enableAi: z.boolean().default(false),
-    promptAi: z.string().min(1).default(""),
-    priority: z.number().int().default(0),
+    enableAi: z.boolean({ coerce: true }).default(false),
+    promptAi: z.string().default(""),
+    priority: z.number({ coerce: true }).int().default(0),
   });
 
   try {
@@ -94,11 +96,15 @@ export const action: ActionFunction = async ({ request }) => {
       );
     }
 
-    if (parsedPayload.type === "create") {
+    if (parsedPayload.mode === "create") {
+      const inputs = parsedPayload.inputs
+        .split(",")
+        .map((input) => input.trim());
+
       const newBotSession = await createBotCommandBySessionId(
         botSession.id,
         parsedPayload.name,
-        parsedPayload.inputs,
+        inputs,
         parsedPayload.output,
         parsedPayload.enableAi,
         parsedPayload.promptAi,
@@ -120,14 +126,18 @@ export const action: ActionFunction = async ({ request }) => {
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
+      logger.error("Parameters validation error");
+      logger.error(error);
       return json(
         { message: "Parameters validation error", error },
         { status: HTTPStatus.BAD_REQUEST }
       );
     }
 
+    logger.error("Internal server error");
+    logger.error(error);
     return json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error },
       { status: HTTPStatus.INTERNAL_SERVER_ERROR }
     );
   }
@@ -141,6 +151,8 @@ export default function Dashboard(): React.ReactElement {
   const socket = useSocket();
   const { ENV, user, botSession } = useLoaderData<LoaderData>();
   const actionData = useActionData<ResponseActionData>();
+  console.log(actionData);
+
   const botSessionSSE = JSON.parse(
     useEventSource(BOT_SESSION_SSE_PATH, {
       event: BOT_SESSION_SSE_EVENT,
@@ -195,19 +207,6 @@ export default function Dashboard(): React.ReactElement {
   return (
     <>
       <Header user={user as UserSession} />
-      <BotCommandForm
-        open={openForm}
-        setOpen={() => setOpenForm(!openForm)}
-        type={propsForm?.type ?? "create"}
-        id={propsForm?.id}
-        sessionId={propsForm?.sessionId}
-        name={propsForm?.name}
-        inputs={propsForm?.inputs}
-        output={propsForm?.output}
-        enableAi={propsForm?.enableAi}
-        priority={propsForm?.priority}
-        subCommandIds={propsForm?.subCommandIds}
-      />
       <main>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-4">
           <div className="flex items-end justify-end">
@@ -265,7 +264,7 @@ export default function Dashboard(): React.ReactElement {
                           <button
                             onClick={() => {
                               setPropsForm({
-                                type: "edit",
+                                mode: "edit",
                                 id: command.id,
                                 sessionId: command.sessionId,
                                 name: command.name,
@@ -287,7 +286,7 @@ export default function Dashboard(): React.ReactElement {
                           <button
                             onClick={() => {
                               setPropsForm({
-                                type: "delete",
+                                mode: "delete",
                                 id: command.id,
                               });
                               setOpenForm(true);
@@ -313,6 +312,19 @@ export default function Dashboard(): React.ReactElement {
           {qrCode()}
         </div>
       </main>
+      <BotCommandForm
+        open={openForm}
+        setOpen={() => setOpenForm(!openForm)}
+        mode={propsForm?.mode ?? "create"}
+        id={propsForm?.id}
+        sessionId={propsForm?.sessionId}
+        name={propsForm?.name}
+        inputs={propsForm?.inputs}
+        output={propsForm?.output}
+        enableAi={propsForm?.enableAi}
+        priority={propsForm?.priority}
+        subCommandIds={propsForm?.subCommandIds}
+      />
     </>
   );
 }
