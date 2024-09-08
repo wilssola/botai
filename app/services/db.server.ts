@@ -14,6 +14,7 @@ export const db = singleton("db", () =>
 export const enhancedb = async (req: Request) => {
   const session = await getUserSession(req);
   const user = session ? { id: session.id } : undefined;
+
   return enhance(
     db,
     { user },

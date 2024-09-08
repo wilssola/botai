@@ -203,7 +203,7 @@ export default function BotCommandForm(props: BotCommandProps) {
                 <button
                   type="submit"
                   data-autofocus="true"
-                  //onSubmit={props.setOpen}
+                  onSubmit={props.setOpen}
                   className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 bg-green-600 sm:ml-3 sm:w-auto"
                 >
                   {props.mode === "delete"

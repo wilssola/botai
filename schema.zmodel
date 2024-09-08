@@ -102,6 +102,8 @@ model BotState {
 
     sessionId String     @unique
     session   BotSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+    @@allow('read', auth().id == session.userId && session.user.mailAuth.verified == true)
 }
 
 model BotCommand {

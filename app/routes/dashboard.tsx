@@ -2,6 +2,7 @@ import {
   ActionFunction,
   LoaderFunction,
   LoaderFunctionArgs,
+  redirect,
   TypedResponse,
 } from "@remix-run/node";
 import React, { useEffect, useState } from "react";
@@ -53,10 +54,17 @@ export const loader: LoaderFunction = async ({
 
   const ENV = await envLoader();
   const user = await getUserSession(request);
+  if (!user) {
+    logger.info("User not found, redirecting to login page");
+    return redirect(LOGIN_PATH, HTTPStatus.UNAUTHORIZED);
+  }
 
   let botSession = await getBotSessionByUserId(user!.id);
   if (!botSession || !botSession.state) {
-    botSession = await createBotSessionByUserId(user!.id);
+    logger.info(
+      `Bot session not found, creating a new one for user ${user!.id}`
+    );
+    botSession = await createBotSessionByUserId(user!.id, request);
   }
 
   return json({ ENV, user, botSession } as LoaderData);
@@ -151,7 +159,6 @@ export default function Dashboard(): React.ReactElement {
   const socket = useSocket();
   const { ENV, user, botSession } = useLoaderData<LoaderData>();
   const actionData = useActionData<ResponseActionData>();
-  console.log(actionData);
 
   const botSessionSSE = JSON.parse(
     useEventSource(BOT_SESSION_SSE_PATH, {
@@ -168,7 +175,7 @@ export default function Dashboard(): React.ReactElement {
     }
 
     socket.on("event", (data) => {
-      console.log(`Received event from Server (${socket.id}):`, data);
+      logger.info(`Received event from Server (${socket.id}):`, data);
     });
   }, [socket]);
 

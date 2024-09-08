@@ -48,6 +48,7 @@ export async function createBotSessionByUserId(userId: User["id"]) {
     // Include the bot state in the return value
     include: {
       state: true,
+      commands: true,
     },
   });
 }
@@ -57,10 +58,10 @@ export async function createBotSessionByUserId(userId: User["id"]) {
  *
  * @param {string} userId - The ID of the user to find the bot session for.
  * @param {Request} [userReq] - The request to use for authentication.
- * @returnsThe bot session, or null if none was found.
+ * @returns The bot session, or null if none was found.
  */
 export async function getBotSessionByUserId(userId: string, userReq?: Request) {
-  const query = { where: { userId }, include: { state: true } };
+  const query = { where: { userId }, include: { state: true, commands: true } };
 
   if (userReq) {
     return (await enhancedb(userReq)).botSession.findUnique(query);
