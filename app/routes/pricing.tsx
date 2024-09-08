@@ -2,6 +2,7 @@ import { FaCheck } from "react-icons/fa";
 import { REGISTER_PATH } from "~/routes";
 import Header from "~/components/Header";
 import { Link } from "@remix-run/react";
+import Footer from "~/components/Footer";
 
 const freePlanFeatures = [
   "Até 5 clientes por dia",
@@ -79,6 +80,7 @@ export default function Pricing() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

@@ -17,7 +17,7 @@ type AuthFormProps = {
 
 export default function AuthForm(props: AuthFormProps) {
   return (
-    <div className="flex w-screen h-screen items-center justify-center px-6 py-12 lg:px-8 bg-blue-950">
+    <div className="flex w-screen h-screen items-center justify-center px-6 py-12 lg:px-8 bg-gradient-to-r from-blue-200 to-blue-300">
       <div className="bg-white shadow-lg rounded-lg p-8 flex flex-col items-center space-y-6">
         <div className="flex items-center space-x-4">
           <div className="h-10 w-auto flex items-center">

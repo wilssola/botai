@@ -4,7 +4,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
 import { Tag, WithContext as ReactTags } from "react-tag-input";
@@ -29,7 +29,26 @@ export type BotCommandModalFormProps = {
   subCommandIds?: string[];
 };
 
-export default function BotCommandModalForm(props: BotCommandModalFormProps) {
+/**
+ * A modal form to create, update or delete a bot command.
+ *
+ * @param props.open - Whether the modal is open or not.
+ * @param props.setOpen - A function to set the open state of the modal.
+ * @param props.mode - The mode of the modal, either "create", "update" or "delete".
+ * @param props.id - The id of the command to update or delete.
+ * @param props.sessionId - The id of the session to which the command belongs.
+ * @param props.name - The name of the command.
+ * @param props.inputs - The inputs of the command.
+ * @param props.output - The output of the command.
+ * @param props.enableAi - Whether the AI is enabled for the command.
+ * @param props.promptAi - The prompt for the AI.
+ * @param props.priority - The priority of the command.
+ * @param props.subCommandIds - The ids of the subcommands.
+ * @returns {React.ReactElement} A modal form to create, update or delete a bot command.
+ */
+export default function BotCommandModalForm(
+  props: BotCommandModalFormProps
+): React.ReactElement {
   const [enableAi, setEnableAi] = useState(props.enableAi);
   const [inputs, setInputs] = useState<Tag[]>([]);
 
@@ -177,7 +196,7 @@ export default function BotCommandModalForm(props: BotCommandModalFormProps) {
                               disabled={!enableAi}
                               draggable="false"
                             ></textarea>
-                            <div className="flex items-center">
+                            <div className="flex items-center min-w-fit">
                               <input
                                 id="enableAi"
                                 name="enableAi"
@@ -190,7 +209,7 @@ export default function BotCommandModalForm(props: BotCommandModalFormProps) {
                                 htmlFor="enableAi"
                                 className="ml-2 block text-sm text-gray-900"
                               >
-                                Habilitar IA
+                                Ativar IA
                               </label>
                             </div>
                           </div>
@@ -236,6 +255,7 @@ export default function BotCommandModalForm(props: BotCommandModalFormProps) {
                       Cancelar
                     </button>
                   </div>
+                  <input name="type" value="command" hidden />
                   <input
                     id="mode"
                     name="mode"

@@ -17,6 +17,11 @@ let previousBotStates: BotState[] = [];
 /**
  * Compares the previous and current bot states to detect created, deleted, and updated bots.
  *
+ * The comparison is done by comparing the IDs of the bot states. The following cases are detected:
+ *  1. Created bots: The ID does not exist in the previous bot states.
+ *  2. Deleted bots: The ID does not exist in the current bot states.
+ *  3. Updated bots: The status or session ID of the bot has changed.
+ *
  * @param {BotState[]} previous - The previous bot states.
  * @param {BotState[]} current - The current bot states.
  */
@@ -26,15 +31,19 @@ function compareBotStates(previous: BotState[], current: BotState[]) {
 
   // Detect created bots.
   const createdBots = current.filter((bot) => !previousIds.has(bot.id));
+  // Start the created bots.
   createdBots.forEach((bot) => startBot(bot));
 
   // Detect deleted bots.
   const deletedBots = previous.filter((bot) => !currentIds.has(bot.id));
+  // Kill the deleted bots.
   deletedBots.forEach((bot) => killBot(bot.id));
 
   // Detect updated bots.
   const updatedBots = current.filter((bot) => {
+    // Find the corresponding previous bot state.
     const previousBot = previous.find((pBot) => pBot.id === bot.id);
+    // Check if the status or session ID of the bot has changed.
     return (
       previousBot &&
       (previousBot.status !== bot.status ||
@@ -42,11 +51,15 @@ function compareBotStates(previous: BotState[], current: BotState[]) {
     );
   });
 
+  // Update the updated bots.
   updatedBots.forEach(async (bot) => {
+    // Get the bot session.
     const session = await getBotSessionById(bot.sessionId);
+    // If the session is disabled, kill the bot.
     if (session && !session.enabled) {
       await killBot(bot.sessionId);
     }
+    // If the bot status is OFFLINE, start the bot.
     if (bot.status === BotStatus.OFFLINE) {
       await startBot(bot);
     }
@@ -115,6 +128,18 @@ async function startBot(bot: BotState): Promise<void> {
       },
       // The callback for when a message is received.
       async (message, client) => {
+        /*await storeBotMessage(
+                  bot.sessionId,
+                  message.messages.map((m) => {
+                    return {
+                      id: m.key.id ?? "",
+                      senderId: m.key.remoteJid ?? "",
+                      fromMe: m.key.fromMe ?? false,
+                      message: m.message?.conversation ?? "",
+                    };
+                  })
+                );*/
+
         // Get the last message from the message list.
         const lastMessage = message.messages[0];
 
@@ -164,11 +189,6 @@ export type StoredMessage = {
   senderId?: string;
 
   /**
-   * Name of the sender, if available.
-   */
-  senderName?: string;
-
-  /**
    * Indicates whether the message was sent by the bot itself.
    */
   fromMe?: boolean;
@@ -186,7 +206,7 @@ export type StoredMessage = {
  * @param {string} sessionId - The bot session ID.
  * @returns {string} The cache key.
  */
-export const MESSAGES_CACHE_KEY = (sessionId: string) =>
+export const MESSAGES_CACHE_KEY = (sessionId: string): string =>
   `cache:bot-chat-messages:${sessionId}`;
 
 const MESSAGES_CACHE_INTERVAL_S = 24 * 3600;
@@ -237,6 +257,10 @@ async function sendBotMessage(
   const words = normalizedMessage.split(" ");
 
   const botCommands = await getBotCommandsBySessionId(sessionId);
+
+  // Sort the bot commands by priority in descending order.
+  botCommands.sort((a, b) => b.priority - a.priority);
+
   for (const botCommand of botCommands) {
     /**
      * Normalize the input commands and compare them to the normalized message.

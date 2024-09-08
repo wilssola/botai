@@ -12,7 +12,7 @@ import { BOT_SESSION_SSE_PATH, LOGIN_PATH } from "~/routes";
 import { BOT_SESSION_SSE_EVENT } from "~/routes/sse.bot-session";
 import { getUserSession, UserSession } from "~/services/auth.server";
 import { checkMailAuthVerified } from "~/models/mail.server";
-import { json, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, json, useActionData, useLoaderData } from "@remix-run/react";
 import Header from "~/components/dashboard/Header";
 import {
   BotSessionFull,
@@ -21,6 +21,7 @@ import {
   deleteBotCommandById,
   getBotSessionByUserId,
   updateBotCommandByCommandId,
+  updateBotSessionById,
 } from "~/models/bot.server";
 import sessionLoader from "~/utils/session-loader.server";
 import TokenInput from "~/components/inputs/TokenInput";
@@ -83,68 +84,94 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
 
   const formPayload = Object.fromEntries(formData);
+  const formType = formPayload["type"] as DashboardFormType;
 
-  const commandSchema = z.object({
-    mode: z.enum(["create", "update", "delete"]),
-    id: z.string().nullish(),
-    sessionId: z.string().nullish(),
-    name: z.string().min(1).nullish(),
-    inputs: z
-      .string()
-      .transform((input) => input.split(",").map(String))
-      .pipe(
-        z
-          .string()
-          .min(1)
-          .max(MAX_TAGS_INPUT_STRING_LENGTH)
-          .array()
-          .max(MAX_TAGS_INPUT_ARRAY_LENGTH)
-      )
-      .nullish(),
-    output: z.string().min(1).nullish(),
-    enableAi: z.boolean({ coerce: true }).default(false),
-    promptAi: z.string().default(""),
-    priority: z.number({ coerce: true }).int().default(0),
-  });
+  if (formType === "session") {
+    const sessionSchema = z.object({
+      sessionId: z.string().min(1),
+      enabled: z.boolean({ coerce: true }).default(false),
+      enableAi: z.boolean({ coerce: true }).default(false),
+      promptAi: z.string().default(""),
+    });
 
-  try {
-    const parsedPayload = commandSchema.parse(formPayload);
+    try {
+      const parsedPayload = sessionSchema.parse(formPayload);
 
-    const user = await getUserSession(request);
-    if (!user) {
-      return json(
-        { message: "Not authorized" },
-        { status: HTTPStatus.UNAUTHORIZED }
-      );
-    }
-
-    if (parsedPayload.name && parsedPayload.inputs && parsedPayload.output) {
-      if (parsedPayload.mode === "create" && parsedPayload.sessionId) {
-        const botSession = await createBotCommandBySessionId(
-          parsedPayload.sessionId,
-          parsedPayload.name,
-          parsedPayload.inputs,
-          parsedPayload.output,
-          parsedPayload.enableAi,
-          parsedPayload.promptAi,
-          parsedPayload.priority,
-          request
+      const user = await getUserSession(request);
+      if (!user) {
+        return json(
+          { message: "Not authorized" },
+          { status: HTTPStatus.UNAUTHORIZED }
         );
-
-        if (!botSession) {
-          return json(
-            { message: "Failed to create command" },
-            { status: HTTPStatus.INTERNAL_SERVER_ERROR }
-          );
-        }
-
-        return json({ message: "Command created" }, { status: HTTPStatus.OK });
       }
 
-      if (parsedPayload.mode === "update" && parsedPayload.id) {
-        try {
-          await updateBotCommandByCommandId(
-            parsedPayload.id,
+      await updateBotSessionById(
+        parsedPayload.sessionId,
+        {
+          enabled: parsedPayload.enabled,
+          enableAi: parsedPayload.enableAi,
+          promptAi: parsedPayload.promptAi,
+        },
+        request
+      );
+
+      return json({ message: "Session updated" }, { status: HTTPStatus.OK });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        logger.error(error);
+        return json(
+          { message: "Parameters validation error", error },
+          { status: HTTPStatus.BAD_REQUEST }
+        );
+      }
+
+      logger.error(error);
+      return json(
+        { message: "Internal server error", error },
+        { status: HTTPStatus.INTERNAL_SERVER_ERROR }
+      );
+    }
+  }
+
+  if (formType === "command") {
+    const commandSchema = z.object({
+      mode: z.enum(["create", "update", "delete"]),
+      id: z.string().nullish(),
+      sessionId: z.string().nullish(),
+      name: z.string().min(1).nullish(),
+      inputs: z
+        .string()
+        .transform((input) => input.split(",").map(String))
+        .pipe(
+          z
+            .string()
+            .min(1)
+            .max(MAX_TAGS_INPUT_STRING_LENGTH)
+            .array()
+            .max(MAX_TAGS_INPUT_ARRAY_LENGTH)
+        )
+        .nullish(),
+      output: z.string().min(1).nullish(),
+      enableAi: z.boolean({ coerce: true }).default(false),
+      promptAi: z.string().default(""),
+      priority: z.number({ coerce: true }).int().default(0),
+    });
+
+    try {
+      const parsedPayload = commandSchema.parse(formPayload);
+
+      const user = await getUserSession(request);
+      if (!user) {
+        return json(
+          { message: "Not authorized" },
+          { status: HTTPStatus.UNAUTHORIZED }
+        );
+      }
+
+      if (parsedPayload.name && parsedPayload.inputs && parsedPayload.output) {
+        if (parsedPayload.mode === "create" && parsedPayload.sessionId) {
+          const botSession = await createBotCommandBySessionId(
+            parsedPayload.sessionId,
             parsedPayload.name,
             parsedPayload.inputs,
             parsedPayload.output,
@@ -154,56 +181,88 @@ export const action: ActionFunction = async ({ request }) => {
             request
           );
 
+          if (!botSession) {
+            return json(
+              { message: "Failed to create command" },
+              { status: HTTPStatus.INTERNAL_SERVER_ERROR }
+            );
+          }
+
           return json(
-            { message: "Command updated" },
+            { message: "Command created" },
+            { status: HTTPStatus.OK }
+          );
+        }
+
+        if (parsedPayload.mode === "update" && parsedPayload.id) {
+          try {
+            await updateBotCommandByCommandId(
+              parsedPayload.id,
+              parsedPayload.name,
+              parsedPayload.inputs,
+              parsedPayload.output,
+              parsedPayload.enableAi,
+              parsedPayload.promptAi,
+              parsedPayload.priority,
+              request
+            );
+
+            return json(
+              { message: "Command updated" },
+              { status: HTTPStatus.OK }
+            );
+          } catch (error) {
+            logger.error(error);
+
+            return json(
+              { message: "Failed to update command", error },
+              { status: HTTPStatus.INTERNAL_SERVER_ERROR }
+            );
+          }
+        }
+      }
+
+      if (parsedPayload.mode === "delete" && parsedPayload.id) {
+        try {
+          await deleteBotCommandById(parsedPayload.id, request);
+
+          return json(
+            { message: "Command deleted" },
             { status: HTTPStatus.OK }
           );
         } catch (error) {
           logger.error(error);
 
           return json(
-            { message: "Failed to update command", error },
+            { message: "Failed to delete command", error },
             { status: HTTPStatus.INTERNAL_SERVER_ERROR }
           );
         }
       }
-    }
 
-    if (parsedPayload.mode === "delete" && parsedPayload.id) {
-      try {
-        await deleteBotCommandById(parsedPayload.id, request);
-
-        return json({ message: "Command deleted" }, { status: HTTPStatus.OK });
-      } catch (error) {
-        logger.error(error);
-
-        return json(
-          { message: "Failed to delete command", error },
-          { status: HTTPStatus.INTERNAL_SERVER_ERROR }
-        );
-      }
-    }
-
-    return json(
-      { message: "Invalid parameters" },
-      { status: HTTPStatus.BAD_REQUEST }
-    );
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      logger.error(error);
       return json(
-        { message: "Parameters validation error", error },
+        { message: "Invalid parameters" },
         { status: HTTPStatus.BAD_REQUEST }
       );
-    }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        logger.error(error);
+        return json(
+          { message: "Parameters validation error", error },
+          { status: HTTPStatus.BAD_REQUEST }
+        );
+      }
 
-    logger.error(error);
-    return json(
-      { message: "Internal server error", error },
-      { status: HTTPStatus.INTERNAL_SERVER_ERROR }
-    );
+      logger.error(error);
+      return json(
+        { message: "Internal server error", error },
+        { status: HTTPStatus.INTERNAL_SERVER_ERROR }
+      );
+    }
   }
 };
+
+export type DashboardFormType = "session" | "command";
 
 /**
  * Component to render the dashboard page.
@@ -218,7 +277,7 @@ export default function Dashboard(): React.ReactElement {
     useEventSource(BOT_SESSION_SSE_PATH, {
       event: BOT_SESSION_SSE_EVENT,
     }) ?? "{}"
-  );
+  ) as BotSessionFull;
 
   useEffect(() => {
     if (!socket) {
@@ -273,26 +332,82 @@ export default function Dashboard(): React.ReactElement {
           <div className="flex justify-end space-x-4">
             <div className="grid grid-cols-1 gap-4 w-full">
               <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2">
-                <h2 className="text-xl font-semibold text-black">Sessão</h2>
-                <div className="flex justify-between space-x-4">
-                  <p
-                    className={`${
-                      botSession && botSession.state
-                        ? "bg-green-400"
-                        : "bg-red-400"
-                    } text-white p-3 rounded-md shadow-md min-w-24 text-center`}
+                <h2 className="text-xl font-semibold text-black">Status</h2>
+                <p
+                  className={`${
+                    botSession && botSession.state
+                      ? "bg-green-400"
+                      : "bg-red-400"
+                  } text-white px-4 py-2 rounded-md shadow-md max-w-24 text-center items-center`}
+                >
+                  {botSession && botSession.state
+                    ? botSession.state.status
+                    : "OFFLINE"}
+                </p>
+                <Form
+                  method="POST"
+                  className="md:flex sm:grid-cols-1 sm:grid space-y-2 justify-start items-center"
+                >
+                  <div className="grid grid-cols-1 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        name="enabled"
+                        type="checkbox"
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                        defaultChecked={
+                          botSessionSSE.enabled ?? botSession.enabled ?? false
+                        }
+                      />
+                      <label htmlFor="enabled" className="text-gray-700">
+                        Ativar Bot
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        name="enableAi"
+                        type="checkbox"
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                        defaultChecked={
+                          botSessionSSE.enableAi ?? botSession.enableAi ?? false
+                        }
+                      />
+                      <label htmlFor="enableAi" className="text-gray-700">
+                        Ativar AI
+                      </label>
+                    </div>
+                  </div>
+                  <div className="bg-gray-300 p-2 rounded-md shadow-md">
+                    <label htmlFor="promptAi" className="block text-gray-700">
+                      IA Prompt Geral
+                    </label>
+                    <textarea
+                      name="promptAi"
+                      className="bg-gray-700 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 text-white"
+                      defaultValue={
+                        botSessionSSE.promptAi ?? botSession.promptAi ?? ""
+                      }
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="max-w-24 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md shadow-md h-12"
                   >
-                    {botSession && botSession.state
-                      ? botSession.state.status
-                      : "OFFLINE"}
-                  </p>
-                </div>
+                    Atualizar
+                  </button>
+
+                  <input name="type" defaultValue="session" hidden />
+                  <input
+                    name="sessionId"
+                    defaultValue={botSessionSSE.id ?? botSession.id}
+                    hidden
+                  />
+                </Form>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 min-w-fit">
               <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2">
-                <h2 className="text-xl font-semibold text-black">QR Codes</h2>
+                <h2 className="text-xl font-semibold text-black">QRCode</h2>
                 {qrCode()}
               </div>
             </div>
@@ -321,7 +436,7 @@ export default function Dashboard(): React.ReactElement {
                     <th className="p-2">Comandos</th>
                     <th className="p-2">Resposta</th>
                     <th className="p-2">IA</th>
-                    <th className="p-2">IA Prompt</th>
+                    <th className="p-2">IA Prompt Mini</th>
                     <th className="p-2">Prioridade</th>
                     {/*<th className="p-2">Subcomandos</th>*/}
                     <th className="p-2"></th>
@@ -367,8 +482,8 @@ export default function Dashboard(): React.ReactElement {
                             </td>
                             <td className="pb-4 pt-4 pl-1 pr-1">
                               <textarea
-                                className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                                value={command.output ?? ""}
+                                className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-blue-500 sm:text-sm p-3"
+                                defaultValue={command.output ?? ""}
                                 readOnly
                               />
                             </td>
@@ -382,8 +497,8 @@ export default function Dashboard(): React.ReactElement {
                             </td>
                             <td className="pb-4 pt-4 pl-1 pr-1">
                               <textarea
-                                className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                                value={command.promptAi ?? ""}
+                                className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-blue-500 sm:text-sm p-3"
+                                defaultValue={command.promptAi ?? ""}
                                 readOnly
                               />
                             </td>
@@ -393,7 +508,7 @@ export default function Dashboard(): React.ReactElement {
                             JSON.stringify(child)
                           )}
                         </td>*/}
-                            <td className="p-1">
+                            <td className="p-2">
                               <button
                                 className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
                                 onClick={() => {
@@ -418,7 +533,7 @@ export default function Dashboard(): React.ReactElement {
                               </button>
                             </td>
                             <td
-                              className={`p-1 ${
+                              className={`p-2 ${
                                 index === botSession.commands.length - 1
                                   ? "rounded-br-md"
                                   : ""

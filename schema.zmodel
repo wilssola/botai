@@ -78,6 +78,9 @@ model BotSession {
     enabled    Boolean      @default(true)
     whatsappQr String?
 
+    enableAi   Boolean      @default(false)
+    promptAi   String?
+
     createdAt  DateTime     @default(now())
     updatedAt  DateTime     @updatedAt
 

@@ -2,15 +2,27 @@ import { FaCheckCircle } from "react-icons/fa";
 
 const features = [
   {
-    name: "Fácil de usar",
+    name: "Fácil de usar 🖱️",
     description: "Nossa plataforma é intuitiva e fácil de usar.",
   },
   {
-    name: "Segurança",
+    name: "Segurança 🔒",
     description: "Garantimos a segurança dos seus dados.",
   },
   {
-    name: "Suporte",
+    name: "Automatização ⏱️",
+    description: "Automatize tarefas e ganhe tempo.",
+  },
+  {
+    name: "Inteligência Artificial 🤖",
+    description: "Utilizamos IA para garantir a melhor experiência.",
+  },
+  {
+    name: "Personalização 🎨",
+    description: "Personalize sua experiência com a nossa plataforma.",
+  },
+  {
+    name: "Suporte 📞",
     description: "Estamos disponíveis para ajudar a qualquer momento.",
   },
 ];
@@ -20,7 +32,7 @@ export default function Features() {
     <div id="features" className="bg-white py-24 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="sm:text-center">
-          <h2 className="text-lg font-semibold leading-8 text-blue-600">
+          <h2 className="text-lg font-semibold leading-8 text-blue-600 uppercase">
             Nossos Recursos
           </h2>
           <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
