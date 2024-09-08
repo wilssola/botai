@@ -12,6 +12,7 @@ import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
 import { SocketProvider } from "./context";
 import "./tailwind.css";
+import { logger } from "~/logger";
 
 export { envLoader as loader } from "~/utils/env-loader.server";
 
@@ -76,13 +77,13 @@ export default function App(): React.ReactElement {
     }
 
     socket.on("confirmation", (data) => {
-      console.log(`WebSocket connection established with the Server: ${data}`);
+      logger.info(`WebSocket connection established with the Server: ${data}`);
 
       socket.emit("event", "ping");
     });
 
     socket.on("disconnect", () => {
-      console.log(`WebSocket connection closed with the Server: ${socket.id}`);
+      logger.info(`WebSocket connection closed with the Server: ${socket.id}`);
     });
   }, [socket]);
 

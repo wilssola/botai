@@ -1,11 +1,4 @@
-import {
-  BotCommand,
-  BotSession,
-  BotState,
-  BotStatus,
-  Prisma,
-  User,
-} from "@prisma/client";
+import { BotSession, BotState, BotStatus, Prisma, User } from "@prisma/client";
 import { db, enhancedb } from "~/services/db.server";
 
 export type BotSessionFull = Prisma.BotSessionGetPayload<{
@@ -26,7 +19,7 @@ export type BotSessionFull = Prisma.BotSessionGetPayload<{
  * @returns The newly created bot session.
  */
 export async function createBotSessionByUserId(userId: User["id"]) {
-  return await db.botSession.create({
+  return db.botSession.create({
     data: {
       // Default to enabled
       enabled: true,
@@ -45,10 +38,14 @@ export async function createBotSessionByUserId(userId: User["id"]) {
       },
     },
 
-    // Include the bot state in the return value
+    // Include the bot state and commands in the response
     include: {
       state: true,
-      commands: true,
+      commands: {
+        include: {
+          children: true,
+        },
+      },
     },
   });
 }
@@ -61,7 +58,17 @@ export async function createBotSessionByUserId(userId: User["id"]) {
  * @returns The bot session, or null if none was found.
  */
 export async function getBotSessionByUserId(userId: string, userReq?: Request) {
-  const query = { where: { userId }, include: { state: true, commands: true } };
+  const query = {
+    where: { userId },
+    include: {
+      state: true,
+      commands: {
+        include: {
+          children: true,
+        },
+      },
+    },
+  };
 
   if (userReq) {
     return (await enhancedb(userReq)).botSession.findUnique(query);
@@ -186,14 +193,26 @@ export async function createBotSubCommandByCommandId(
   return db.botCommand.create(query);
 }
 
-export async function updateBotCommandById(
+export async function updateBotCommandByCommandId(
   commandId: string,
-  updates: Partial<BotCommand>,
+  name: string,
+  inputs: string[],
+  output: string,
+  enableAi: boolean,
+  promptAi: string,
+  priority: number,
   userReq?: Request
 ) {
   const query = {
     where: { id: commandId },
-    data: updates,
+    data: {
+      name,
+      inputs,
+      output,
+      enableAi,
+      promptAi,
+      priority,
+    },
   };
 
   if (userReq) {
@@ -261,14 +280,6 @@ export async function getBotStates(status?: BotStatus) {
           session: true,
         },
       });
-}
-
-/**
- * Gets a stream of all bot states.
- * @returns A stream of all bot states.
- */
-export async function streamBotStates() {
-  return await db.botState.stream();
 }
 
 /**

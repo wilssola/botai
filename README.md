@@ -45,9 +45,7 @@ flyctl secrets set APP_URL="0.0.0.0"
 flyctl secrets set PORT=3000
 flyctl secrets set APP_DOMAIN=""
 
-flyctl secrets set DIRECT_DATABASE_URL=""
 flyctl secrets set DATABASE_URL=""
-flyctl secrets set PULSE_API_KEY=""
 flyctl secrets set MONGO_URI=""
 
 flyctl secrets set SESSION_SECRET=""

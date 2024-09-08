@@ -41,7 +41,7 @@ export const loader: LoaderFunction = async ({
   }
 
   mailAuth = await sendMailAuthVerification(user, mailAuth);
-  if (mailAuth!.verified) {
+  if (mailAuth && mailAuth.verified) {
     return redirect(DASHBOARD_PATH);
   }
 

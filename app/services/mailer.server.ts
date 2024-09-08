@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import * as process from "node:process";
+import { logger } from "~/logger";
 
 const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -26,8 +27,8 @@ export async function sendMail(
       html,
     });
 
-    console.log(`Mail sent: ${mail.messageId}`);
+    logger.info(`Mail sent: ${mail.messageId}`);
   } catch (error) {
-    console.error(`Error sending mail: ${error}`);
+    logger.error(`Error sending mail: ${error}`);
   }
 }

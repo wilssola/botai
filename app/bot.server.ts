@@ -1,64 +1,59 @@
-import {BotState, BotStatus} from "@prisma/client";
-import {whatsappManager} from "~/bots/whatsapp.server";
+import { BotCommand, BotState, BotStatus } from "@prisma/client";
+import { whatsappManager } from "~/bots/whatsapp.server";
 import {
+  getBotCommandsBySessionId,
   getBotSessionById,
   getBotStates,
-  streamBotStates,
   updateBotSessionById,
   updateBotStateById,
 } from "~/models/bot.server";
-import {logger} from "~/logger";
+import { logger } from "~/logger";
+import { askAI } from "~/services/ai.server";
+import { redis } from "~/services/redis.server";
+import stringSimilarity from "string-similarity";
 
-/**
- * Starts all bots enabled.
- *
- * @returns {Promise<void>} A promise that resolves all bots enabled.
- */
-async function startBots(): Promise<void> {
-  const bots = await getBotStates();
+let previousBotStates: BotState[] = [];
 
-  if (bots.length > 0) {
-    for (const bot of bots) {
-      if (!bot.session.enabled) {
-        continue;
-      }
+function compareBotStates(previous: BotState[], current: BotState[]) {
+  const previousIds = new Set(previous.map((bot) => bot.id));
+  const currentIds = new Set(current.map((bot) => bot.id));
 
+  // Detect created bots
+  const createdBots = current.filter((bot) => !previousIds.has(bot.id));
+  createdBots.forEach((bot) => startBot(bot));
+
+  // Detect deleted bots
+  const deletedBots = previous.filter((bot) => !currentIds.has(bot.id));
+  deletedBots.forEach((bot) => killBot(bot.id));
+
+  // Detect updated bots
+  const updatedBots = current.filter((bot) => {
+    const previousBot = previous.find((pBot) => pBot.id === bot.id);
+    return (
+      previousBot &&
+      (previousBot.status !== bot.status ||
+        previousBot.sessionId !== bot.sessionId)
+    );
+  });
+
+  updatedBots.forEach(async (bot) => {
+    const session = await getBotSessionById(bot.sessionId);
+    if (session && !session.enabled) {
+      await killBot(bot.sessionId);
+    }
+    if (bot.status === BotStatus.OFFLINE) {
       await startBot(bot);
     }
-  }
+  });
 }
 
-/**
- * Streams bots state changes and handles them accordingly.
- *
- * @see https://www.prisma.io/docs/pulse
- * @returns {Promise<void>} A promise that resolves when the bots state stream ends.
- */
-async function streamBots(): Promise<void> {
-  const botsStream = await streamBotStates();
-
-  for await (const botEvent of botsStream) {
-    switch (botEvent.action) {
-      case "create": {
-        await startBot(botEvent.created);
-        break;
-      }
-      case "update": {
-        const bot = await getBotSessionById(botEvent.after.sessionId);
-        if (bot && !bot.enabled) {
-          await killBot(botEvent.after.sessionId);
-        }
-
-        if (botEvent.after.status === BotStatus.OFFLINE) {
-          await startBot(botEvent.after);
-        }
-        break;
-      }
-      case "delete": {
-        await killBot(botEvent.deleted.id);
-        break;
-      }
-    }
+async function monitorBotStates() {
+  try {
+    const currentBotStates = await getBotStates();
+    compareBotStates(previousBotStates, currentBotStates);
+    previousBotStates = currentBotStates;
+  } catch (error) {
+    logger.error("Error monitoring bot states", error);
   }
 }
 
@@ -69,7 +64,7 @@ async function streamBots(): Promise<void> {
  * @returns {Promise<void>} A promise that resolves when the bots is started.
  */
 async function startBot(bot: BotState): Promise<void> {
-  console.log(`Starting bot ${bot.id} for session ${bot.sessionId}`);
+  logger.info(`Starting bot ${bot.id} for session ${bot.sessionId}`);
 
   try {
     await whatsappManager.createClient(
@@ -88,14 +83,16 @@ async function startBot(bot: BotState): Promise<void> {
         await updateBotStateById(bot.id, { status: BotStatus.OFFLINE });
       },
       async (message, client) => {
-        console.log(message.messages[0].message?.conversation);
-        if (
-          !message.messages[0].key.fromMe &&
-          message.messages[0].message?.conversation?.includes("Oi")
-        ) {
-          await client.sendMessage(message.messages[0].key.remoteJid!, {
-            text: "Olá",
-          });
+        if (!message.messages[0].key.fromMe) {
+          await sendBotMessage(
+            bot.sessionId,
+            message.messages[0].message!.conversation!,
+            async (response) => {
+              await client.sendMessage(message.messages[0].key.remoteJid!, {
+                text: response,
+              });
+            }
+          );
         }
       }
     );
@@ -106,6 +103,95 @@ async function startBot(bot: BotState): Promise<void> {
       logger.error(error.message);
     }
   }
+}
+
+async function sendBotMessage(
+  sessionId: string,
+  message: string,
+  sendFunction: (response: string) => Promise<void>
+) {
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\s]/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const normalizedMessage = normalize(message);
+  const words = normalizedMessage.split(" ");
+
+  const botCommands = await getBotCommandsBySessionId(sessionId);
+  for (const botCommand of botCommands) {
+    console.log("botCommand", botCommand);
+    const inputs = botCommand.inputs.map((input) => normalize(input));
+    const match = words.some((word) => {
+      const similarities = inputs.map((input) =>
+        stringSimilarity.compareTwoStrings(word, input)
+      );
+
+      return Math.max(...similarities) > 0.8; // Ajuste o limiar conforme necessário
+    });
+
+    if (match) {
+      console.log("match", match);
+      await handleBotResponse(sessionId, message, botCommand, sendFunction);
+      break;
+    }
+  }
+}
+
+async function handleBotResponse(
+  sessionId: string,
+  message: string,
+  botCommand: BotCommand,
+  sendFunction: (response: string) => Promise<void>
+) {
+  if (botCommand.enableAi) {
+    const response = await getAiResponse(
+      sessionId,
+      botCommand.id,
+      botCommand.promptAi && botCommand.promptAi.length > 0
+        ? `${botCommand.promptAi} ${botCommand.output}`
+        : botCommand.output,
+      message
+    );
+
+    if (response) {
+      await sendFunction(response);
+    }
+    return;
+  }
+
+  if (botCommand.output && botCommand.output.length > 0) {
+    await sendFunction(botCommand.output);
+  }
+}
+
+async function getAiResponse(
+  sessionId: string,
+  commandId: string,
+  prompt: string,
+  message: string
+) {
+  const CACHE_KEY = `cache:ai-response:${sessionId}:${commandId}`;
+  const CACHE_INTERVAL_S = 60;
+
+  const SYSTEM_PROMPT =
+    "Você é um assistente de IA. Evite responder perguntas pessoais, filosóficas ou religiosas. Responda a perguntas de forma objetiva e educada. Use emojis sempre que possível. Siga as regras complementares as seguir:";
+
+  const cachedResponse = await redis.get(CACHE_KEY);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  const response = await askAI(`${SYSTEM_PROMPT} ${prompt}`, message);
+  if (response) {
+    await redis.set(CACHE_KEY, response, "EX", CACHE_INTERVAL_S);
+  }
+
+  return response;
 }
 
 /**
@@ -146,9 +232,7 @@ async function stopBots(): Promise<void> {
  * @returns {Promise<void>} A promise that resolves when the bots operations are complete.
  */
 export const handleBot = async (): Promise<void> => {
-  await startBots();
-  await streamBots();
-
+  setInterval(monitorBotStates, 10000);
   handleBotProcess();
 };
 

@@ -49,6 +49,16 @@ export const PRICING_PATH = "/pricing";
 export const DASHBOARD_PATH = "/dashboard";
 
 /**
+ * Dashboard home path constant.
+ */
+export const DASHBOARD_CHAT_PATH = `${DASHBOARD_PATH}/chat`;
+
+/**
+ * Dashboard users path constant.
+ */
+export const DASHBOARD_USERS_PATH = `${DASHBOARD_PATH}/users`;
+
+/**
  * WhatsApp QR SSE path constant.
  */
 export const BOT_SESSION_SSE_PATH = "/sse/bot-session";

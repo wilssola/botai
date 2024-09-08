@@ -5,6 +5,7 @@ import {sendMail} from "~/services/mailer.server";
 import {redirect} from "@remix-run/node";
 import {getUserSession} from "~/services/auth.server";
 import {LOGIN_PATH, VERIFY_EMAIL_PATH} from "~/routes";
+import {logger} from "~/logger";
 
 /**
  * Sends a mail authentication verification email to the user.
@@ -16,6 +17,12 @@ export async function sendMailAuthVerification(
   user: User,
   mailAuth: MailAuth | null
 ): Promise<MailAuth | null> {
+  if (!emailSMTP) {
+    logger.error("SMTP configuration is not set up");
+    logger.warn("Ignoring mail authentication verification");
+    return null;
+  }
+
   if (!mailAuth) {
     mailAuth = await getUserMailAuthById(user.id);
   }
@@ -45,6 +52,12 @@ export async function sendMailAuthVerification(
 export async function checkMailAuthVerified(
   request: Request
 ): Promise<Response | void> {
+  if (!emailSMTP) {
+    logger.error("SMTP configuration is not set up");
+    logger.warn("Ignoring mail authentication verification");
+    return;
+  }
+
   const user = await getUserSession(request);
   if (!user) {
     throw redirect(LOGIN_PATH);
@@ -55,3 +68,9 @@ export async function checkMailAuthVerified(
     throw redirect(VERIFY_EMAIL_PATH);
   }
 }
+
+const emailSMTP =
+  process.env.SMTP_HOST ||
+  process.env.SMTP_PORT ||
+  process.env.MAIL_USER ||
+  process.env.MAIL_PASS;

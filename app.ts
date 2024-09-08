@@ -84,7 +84,7 @@ app.use(
           "'self'",
           "https://hcaptcha.com",
           "https://*.hcaptcha.com",
-          "https://*.sentry.websocket",
+          "https://*.sentry.io",
           process.env.NODE_ENV !== "production" ? `ws://localhost:*` : "",
         ],
         "frame-src": [

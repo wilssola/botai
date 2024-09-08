@@ -3,11 +3,11 @@ import { eventStream } from "remix-utils/sse/server";
 import { interval } from "remix-utils/timers";
 import { getUserSession } from "~/services/auth.server";
 import { getBotSessionByUserId } from "~/models/bot.server";
+import { logger } from "~/logger";
 
 export const BOT_SESSION_SSE_EVENT = "bot-session";
 
-const SEND_INTERVAL = 5 * 1000;
-const RESET_INTERVAL = 2 * SEND_INTERVAL;
+const SEND_INTERVAL = 1000;
 
 export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   return eventStream(request.signal, function setup(send) {
@@ -17,17 +17,12 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
         return "";
       }
 
-      let time = 0;
       let botSession = await getBotSessionByUserId(user.id, request);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for await (const _ of interval(SEND_INTERVAL, {
         signal: request.signal,
       })) {
-        time += SEND_INTERVAL;
-        if (time >= RESET_INTERVAL) {
-          botSession = await getBotSessionByUserId(user.id, request);
-          time = 0;
-        }
+        botSession = await getBotSessionByUserId(user.id, request);
 
         if (!botSession) {
           return "";
@@ -40,7 +35,7 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
       }
     }
 
-    run();
+    run().then(() => logger.info("Bot session SSE stream ended"));
 
     return async () => {};
   });

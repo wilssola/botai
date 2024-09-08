@@ -233,7 +233,7 @@ export class WhatsAppSession {
       return;
     }
 
-    this.client.end(new Error(`Killing client for session ${this.sessionId}`));
+    this.client.end(undefined);
 
     this.client = null;
     if (this.lockRenewalInterval) {
