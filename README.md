@@ -59,6 +59,35 @@ das principais:
 
 Essas bibliotecas foram escolhidas para garantir que o projeto seja robusto, escalável e fácil de manter.
 
+## Requisitos
+
+Esse projeto faz uso de várias tecnologias e serviços, então é necessário ter algumas coisas instaladas e configuradas.
+
+Para obter as chaves de API do hCaptcha, crie uma conta e siga as instruções
+do [hCaptcha](https://dashboard.hcaptcha.com/).
+
+Para obter as chaves de API do OpenAI, siga as instruções da [OpenAI](https://openai.com/).
+
+- Obs.: A API do OpenAI é paga, então é necessário ter uma conta com créditos disponíveis. Sendo assim, recomendamos o
+  uso do [Groq](https://console.groq.com/).
+
+Para obter as chaves de API do Sentry, crie uma conta e siga as instruções do [Sentry](https://sentry.io/).
+
+Para hospedar um banco de dados MongoDB, recomendamos o uso do [MongoDB Atlas](https://mongodb.com/cloud/atlas/).
+
+Para hospedar um banco de dados PostgreSQL, recomendamos o uso
+do [Fly](https://fly.io/docs/postgres/connecting/connecting-external/) ou do [Supabase](https://supabase.com/).
+
+Para hospedar um banco de dados Redis, recomendamos o uso do [Fly](https://fly.io/docs/upstash/redis/) que facilita a
+criação de uma instância no [Upstash](https://upstash.com/).
+
+Para hospedar a aplicação, recomendamos o uso do [Fly](https://fly.io/).
+
+Para o envio de e-mails, você pode usar qualquer provedor de mail que suporte o SMTP.
+
+- Obs.: Caso não defina nenhum provedor de e-mail, o envio de e-mails não será possível, mas mesmo assim a aplicação
+  funcionará normalmente, na teoria, pois a verificação de email será desativada (não testado).
+
 ## 🛠️ Modo de Desenvolvimento
 
 Primeiro, instale as dependências:
