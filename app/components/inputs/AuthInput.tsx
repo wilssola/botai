@@ -19,11 +19,18 @@ type AuthInputProps = {
   maxLength?: number;
 };
 
+/**
+ * AuthInput component for rendering an input field with optional label and link.
+ *
+ * @param {AuthInputProps} props - The properties for the AuthInput component.
+ * @returns {ReactElement} The rendered AuthInput component.
+ */
 export default function AuthInput(
   props: AuthInputProps
 ): ReactElement<AuthInputProps> {
   return (
     <div className="mt-2 mb-2">
+      {/* Label and optional link */}
       <div className="flex items-center justify-between">
         <label
           htmlFor={props.id}
@@ -43,6 +50,7 @@ export default function AuthInput(
       <label htmlFor={props.id} className="sr-only">
         {props.label}
       </label>
+      {/* Input field */}
       <input
         id={props.id}
         name={props.name}

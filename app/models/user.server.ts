@@ -18,7 +18,7 @@ export async function createUserByForm({
   }
 
   const passwordHash = await argon2.hash(password);
-  return await db.user.create({
+  return db.user.create({
     data: {
       username,
       email,
@@ -42,7 +42,7 @@ export async function getUserByForm({
     },
   });
 
-  // Para prevenir ataques de tempo, calcular um hash inútil para evitar um invasor deduzir se o usuário existe ou não.
+  // To prevent timing attacks, calculate a dummy hash to avoid an attacker deducing whether the user exists or not.
   // https://en.wikipedia.org/wiki/Timing_attack
   if (!user || !user.password) {
     await argon2.hash(password);
@@ -95,7 +95,7 @@ export async function getUserByUsername(
 }
 
 export async function createUserMailAuthCodeById(userId: User["id"]) {
-  return await db.mailAuth.create({
+  return db.mailAuth.create({
     data: {
       code: nanoid(),
       user: {
@@ -183,10 +183,10 @@ export async function updateUserPasswordById(
   };
 
   if (userRequest) {
-    return await (await enhancedb(userRequest)).user.update(query);
+    return (await enhancedb(userRequest)).user.update(query);
   }
 
-  return await db.user.update(query);
+  return db.user.update(query);
 }
 
 export async function deleteUserById(userId: string, userRequest?: Request) {
@@ -195,8 +195,8 @@ export async function deleteUserById(userId: string, userRequest?: Request) {
   };
 
   if (userRequest) {
-    return await (await enhancedb(userRequest)).user.delete(query);
+    return (await enhancedb(userRequest)).user.delete(query);
   }
 
-  return await db.user.delete(query);
+  return db.user.delete(query);
 }

@@ -2,12 +2,21 @@ import { Form } from "@remix-run/react";
 import { ResponseActionData } from "~/types/response-action-data";
 import AuthInput from "../inputs/AuthInput";
 import Logo from "../Logo";
+import React from "react";
 
 type MailAuthFormProps = {
   actionData?: ResponseActionData;
 };
 
-export default function MailAuthForm(props: MailAuthFormProps) {
+/**
+ * MailAuthForm component for handling email verification.
+ *
+ * @param {MailAuthFormProps} props - The properties for the MailAuthForm component.
+ * @returns {React.ReactElement} The rendered MailAuthForm component.
+ */
+export default function MailAuthForm(
+  props: MailAuthFormProps
+): React.ReactElement {
   return (
     <div className="flex w-screen h-screen items-center justify-center px-6 py-12 lg:px-8 bg-gradient-to-r from-blue-200 to-blue-300">
       <div className="bg-white shadow-lg rounded-lg p-8 flex flex-col items-center space-y-6">

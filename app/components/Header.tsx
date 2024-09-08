@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa";
 import { FaX } from "react-icons/fa6";
 import { Link, NavLink } from "@remix-run/react";
-import { createElement, useState } from "react";
+import { createElement, ReactElement, useState } from "react";
 import Logo from "./Logo";
 import {
   FEATURES_PATH,
@@ -36,6 +36,7 @@ type HeaderLink = {
   icon: IconType;
 };
 
+// Array of header links without descriptions
 const headerLinks: Omit<HeaderLink, "description">[] = [
   {
     name: "Produtos",
@@ -54,6 +55,7 @@ const headerLinks: Omit<HeaderLink, "description">[] = [
   },
 ];
 
+// Array of product links with descriptions
 const productLinks: HeaderLink[] = [
   {
     name: "Bot para WhatsApp",
@@ -63,11 +65,13 @@ const productLinks: HeaderLink[] = [
   },
 ];
 
+// Array of action links without descriptions
 const actionLinks: Omit<HeaderLink, "description">[] = [
   { name: "Email", href: "#", icon: FaEnvelope },
   { name: "WhatsApp", href: "#", icon: FaWhatsapp },
 ];
 
+// Array of authentication links without descriptions and icons
 const authLinks: Omit<HeaderLink, "description" | "icon">[] = [
   {
     name: "Logar",
@@ -75,7 +79,13 @@ const authLinks: Omit<HeaderLink, "description" | "icon">[] = [
   },
 ];
 
-export default function Header() {
+/**
+ * Header component that displays the navigation header of the application.
+ *
+ * @returns {ReactElement} The rendered Header component.
+ */
+export default function Header(): ReactElement {
+  // State to manage the visibility of the mobile menu
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -86,7 +96,7 @@ export default function Header() {
           className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
         >
           <div className="flex lg:flex-1">
-            <Logo />
+            <Logo /> {/* Logo component */}
           </div>
           <div className="flex lg:hidden">
             <button
@@ -95,7 +105,8 @@ export default function Header() {
               className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
             >
               <span className="sr-only">Menu</span>
-              <FaBars aria-hidden="true" className="h-6 w-6" />
+              <FaBars aria-hidden="true" className="h-6 w-6" />{" "}
+              {/* Menu icon */}
             </button>
           </div>
 
@@ -190,14 +201,15 @@ export default function Header() {
           <div className="fixed inset-0 z-10" />
           <DialogPanel className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
             <div className="flex items-center justify-between">
-              <Logo />
+              <Logo /> {/* Logo component */}
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"
               >
                 <span className="sr-only">Menu</span>
-                <FaX aria-hidden="true" className="h-6 w-6" />
+                <FaX aria-hidden="true" className="h-6 w-6" />{" "}
+                {/* Close icon */}
               </button>
             </div>
             <div className="mt-6 flow-root">

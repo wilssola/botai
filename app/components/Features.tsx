@@ -1,5 +1,7 @@
 import { FaCheckCircle } from "react-icons/fa";
+import { ReactElement } from "react";
 
+// Array of feature objects, each containing a name and description
 const features = [
   {
     name: "Fácil de usar 🖱️",
@@ -27,7 +29,12 @@ const features = [
   },
 ];
 
-export default function Features() {
+/**
+ * Features component that displays a list of features.
+ *
+ * @returns {ReactElement} The rendered Features component.
+ */
+export default function Features(): ReactElement {
   return (
     <div id="features" className="bg-white py-24 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">

@@ -1,11 +1,20 @@
-import { FaX } from "react-icons/fa6";
-import { Link } from "@remix-run/react";
-import { useState } from "react";
+import {FaX} from "react-icons/fa6";
+import {Link} from "@remix-run/react";
+import {ReactElement, useState} from "react";
 
-export default function Banner() {
+/**
+ * Banner component that displays a notification with a link to the project repository.
+ *
+ * @returns {ReactElement | null} The rendered Banner component or null if closed.
+ */
+export default function Banner(): ReactElement | null {
+  // State to manage the visibility of the banner
   const [open, setOpen] = useState(true);
 
-  if (!open) return null;
+  // If the banner is closed, return null
+  if (!open) {
+    return null;
+  }
 
   return (
     <div className="relative isolate flex items-center gap-x-6 shadow-md bg-gray-50 px-6 py-2.5 sm:px-3.5 sm:before:flex-1">

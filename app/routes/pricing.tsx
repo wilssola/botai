@@ -3,16 +3,24 @@ import { REGISTER_PATH } from "~/routes";
 import Header from "~/components/Header";
 import { Link } from "@remix-run/react";
 import Footer from "~/components/Footer";
+import { ReactElement } from "react";
 
+// Features included in the free plan
 const freePlanFeatures = [
   "Até 5 clientes por dia",
   "Integração com WhatsApp",
   "Inteligência Artificial",
 ];
 
-export default function Pricing() {
+/**
+ * Component for the pricing page.
+ *
+ * @returns {ReactElement} The pricing page component.
+ */
+export default function Pricing(): ReactElement {
   return (
     <>
+      {/* Header component */}
       <Header />
       <div className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -80,6 +88,7 @@ export default function Pricing() {
           </div>
         </div>
       </div>
+      {/* Footer component */}
       <Footer />
     </>
   );

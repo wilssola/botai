@@ -1,3 +1,6 @@
+import { ReactElement } from "react";
+
+// Array of testimonial objects, each containing a name and feedback
 const testimonials = [
   {
     name: "Sócrates",
@@ -9,11 +12,17 @@ const testimonials = [
   },
 ];
 
-export default function Testimonials() {
+/**
+ * Testimonials component that displays a list of customer testimonials.
+ *
+ * @returns {ReactElement} The rendered Testimonials component.
+ */
+export default function Testimonials(): ReactElement {
   return (
     <div className="bg-gray-50 py-24 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="sm:text-center">
+          {/* Section heading */}
           <h2 className="text-lg font-semibold leading-8 text-blue-600 uppercase">
             Depoimentos
           </h2>
@@ -23,6 +32,7 @@ export default function Testimonials() {
         </div>
         <div className="mt-20 max-w-lg sm:mx-auto md:max-w-none">
           <div className="grid grid-cols-1 gap-y-16 md:grid-cols-2 md:gap-x-8 text-center">
+            {/* Map through testimonials and display each one */}
             {testimonials.map((testimonial) => (
               <div
                 key={testimonial.name}

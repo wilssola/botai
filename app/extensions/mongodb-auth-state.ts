@@ -17,11 +17,13 @@ type MongoDBAuthConfig = {
   sessionId: string;
 };
 
+// Create a new MongoClient instance with the provided URI and options
 const client = new MongoClient(process.env.MONGO_URI!, {
   connectTimeoutMS: 15000,
   retryWrites: true,
 });
 
+// Connect to the MongoDB client
 await client.connect();
 
 /**
@@ -29,7 +31,7 @@ await client.connect();
  *
  * @see https://github.com/WhiskeySockets/Baileys/blob/a13cad89d2dcfe5ff1e91ab4aaedf63a248b466f/src/Utils/use-mongodb-auth-state.ts
  * @param {MongoDBAuthConfig} config - The MongoDB authentication configuration.
- * @returns {Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }>} The authentication object.
+ * @returns {Promise<{ state: AuthenticationState; saveCreds: () => Promise<void>; removeCreds: () => Promise<void> }>} The authentication object.
  */
 export const mongodbAuthState = async (
   config: MongoDBAuthConfig
@@ -61,8 +63,8 @@ export const mongodbAuthState = async (
   /**
    * Writes data to the collection.
    *
-   * @param data - The data to write.
-   * @param key - The key of the document.
+   * @param {unknown} data - The data to write.
+   * @param {string} key - The key of the document.
    * @private
    */
   async function writeData(data: unknown, key: string) {
@@ -76,8 +78,8 @@ export const mongodbAuthState = async (
   /**
    * Reads data from the collection.
    *
-   * @param key - The key of the document.
-   * @returns The data from the collection.
+   * @param {string} key - The key of the document.
+   * @returns {Promise<unknown>} The data from the collection.
    * @private
    */
   async function readData(key: string) {
@@ -89,13 +91,14 @@ export const mongodbAuthState = async (
   /**
    * Removes data from the collection.
    *
-   * @param key - The key of the document.
+   * @param {string} key - The key of the document.
    * @private
    */
   const removeData = async (key: string) => {
     await collection.deleteOne({ _id: key } as Document);
   };
 
+  // Initialize authentication credentials
   const creds: AuthenticationCreds =
     (await readData(`creds-${sessionId}`)) || initAuthCreds();
 
@@ -103,6 +106,13 @@ export const mongodbAuthState = async (
     state: {
       creds,
       keys: {
+        /**
+         * Retrieves keys from the collection.
+         *
+         * @param {string} type - The type of the key.
+         * @param {string[]} ids - The IDs of the keys.
+         * @returns {Promise<{ [_: string]: SignalDataTypeMap[typeof type] }>} The retrieved keys.
+         */
         get: async (type, ids) => {
           const data: { [_: string]: SignalDataTypeMap[typeof type] } = {};
           await Promise.all(
@@ -118,6 +128,12 @@ export const mongodbAuthState = async (
 
           return data;
         },
+        /**
+         * Sets keys in the collection.
+         *
+         * @param {SignalDataSet} data - The data to set.
+         * @returns {Promise<void>}
+         */
         set: async (data) => {
           const tasks: Promise<void>[] = [];
 
@@ -134,9 +150,19 @@ export const mongodbAuthState = async (
         },
       },
     },
+    /**
+     * Saves the credentials to the collection.
+     *
+     * @returns {Promise<void>}
+     */
     saveCreds: async () => {
       await writeData(creds, `creds-${sessionId}`);
     },
+    /**
+     * Removes the credentials from the collection.
+     *
+     * @returns {Promise<void>}
+     */
     removeCreds: async () => {
       await removeData(`creds-${sessionId}`);
     },

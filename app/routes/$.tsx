@@ -1,8 +1,14 @@
-import { LoaderFunction, MetaFunction } from "@remix-run/node";
-import { json, Link } from "@remix-run/react";
-import { APP_NAME } from "~/constants";
-import { HTTPStatus } from "~/enums/http-status";
+import {LoaderFunction, MetaFunction} from "@remix-run/node";
+import {json, Link} from "@remix-run/react";
+import {APP_NAME} from "~/constants";
+import {HTTPStatus} from "~/enums/http-status";
+import {ReactElement} from "react";
 
+/**
+ * Generates meta tags for the 404 page.
+ *
+ * @returns Meta tags for the 404 page.
+ */
 export const meta: MetaFunction = () => {
   return [
     { title: `${APP_NAME} | ${HTTPStatus.NOT_FOUND}` },
@@ -10,11 +16,21 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+/**
+ * Loader function for the 404 page.
+ *
+ * @returns {Response} A JSON response with a 404 status.
+ */
 export const loader: LoaderFunction = () => {
   return json(null, { status: 404 });
 };
 
-export default function $() {
+/**
+ * Component for the 404 page.
+ *
+ * @returns {ReactElement} The 404 page component.
+ */
+export default function $(): ReactElement {
   return (
     <>
       <main className="grid min-h-full place-items-center bg-gradient-to-r from-blue-200 to-blue-300 px-6 py-24 sm:py-32 lg:px-8 h-screen w-screen">

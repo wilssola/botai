@@ -4,7 +4,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import React, { useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
 import { Tag, WithContext as ReactTags } from "react-tag-input";
@@ -32,40 +32,52 @@ export type BotCommandModalFormProps = {
 /**
  * A modal form to create, update or delete a bot command.
  *
- * @param props.open - Whether the modal is open or not.
- * @param props.setOpen - A function to set the open state of the modal.
- * @param props.mode - The mode of the modal, either "create", "update" or "delete".
- * @param props.id - The id of the command to update or delete.
- * @param props.sessionId - The id of the session to which the command belongs.
- * @param props.name - The name of the command.
- * @param props.inputs - The inputs of the command.
- * @param props.output - The output of the command.
- * @param props.enableAi - Whether the AI is enabled for the command.
- * @param props.promptAi - The prompt for the AI.
- * @param props.priority - The priority of the command.
- * @param props.subCommandIds - The ids of the subcommands.
- * @returns {React.ReactElement} A modal form to create, update or delete a bot command.
+ * @param {BotCommandModalFormProps} props - The properties for the BotCommandModalForm component.
+ * @returns {ReactElement} A modal form to create, update or delete a bot command.
  */
 export default function BotCommandModalForm(
   props: BotCommandModalFormProps
-): React.ReactElement {
+): ReactElement {
   const [enableAi, setEnableAi] = useState(props.enableAi);
   const [inputs, setInputs] = useState<Tag[]>([]);
 
+  /**
+   * Handles the deletion of a tag from the inputs.
+   *
+   * @param {number} index - The index of the tag to delete.
+   */
   const handleDelete = (index: number) => {
     setInputs(inputs.filter((tag, _index) => _index !== index));
   };
 
+  /**
+   * Handles the update of a tag in the inputs.
+   *
+   * @param {number} index - The index of the tag to update.
+   * @param {Tag} newTag - The new tag to replace the old one.
+   */
   const onInputUpdate = (index: number, newTag: Tag) => {
     const updatedInputs = [...inputs];
     updatedInputs.splice(index, 1, newTag);
     setInputs(updatedInputs);
   };
 
+  /**
+   * Handles the addition of a new tag to the inputs.
+   *
+   * @param {Tag} tag - The new tag to add.
+   */
   const handleAddition = (tag: Tag) => {
     setInputs([...inputs, tag]);
   };
 
+  /**
+   * Handles the drag and drop of tags to reorder them.
+   *
+   * @param {Tag} tag - The tag being dragged.
+   * @param {number} currentPosition - The current position of the tag.
+   * @param {number} newPosition - The new position of the tag.
+   */
   const handleDrag = (
     tag: Tag,
     currentPosition: number,
@@ -79,10 +91,16 @@ export default function BotCommandModalForm(
     setInputs(newTags);
   };
 
+  /**
+   * Clears all tags from the inputs.
+   */
   const onClearAll = () => {
     setInputs([]);
   };
 
+  /**
+   * Effect to initialize the state when the modal is opened.
+   */
   useEffect(() => {
     if (props.open) {
       setEnableAi(props.enableAi ?? false);
