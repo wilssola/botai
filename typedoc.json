@@ -5,5 +5,5 @@
     "./app/**/*.ts",
     "./app/**/*.tsx"
   ],
-  "out": "docs"
+  "out": "public/docs"
 }
