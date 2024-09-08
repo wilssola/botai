@@ -3,6 +3,37 @@
 - 📖 [BotAI](https://botai.tecwolf.com.br)
 - 📖 [BotAI Docs](https://botai.tecwolf.com.br/docs)
 
+## 📝 Sobre o Projeto
+
+O BotAI é uma plataforma de automação de atendimento ao cliente que utiliza inteligência artificial para automatizar as
+interações com os usuários. Através de um chatbot, os usuários podem obter respostas rápidas e precisas para suas
+dúvidas ou solicitações, melhorando a experiência do cliente e reduzindo o tempo de resposta.
+
+Este projeto foi desenvolvido como um desafio de vaga na [Gatewayfy](https://gatewayfy.com) e foi idealizado por mim,
+[Wilson Oliveira Lima](https://github.com/wilssola). Como o desafio se tratava de desenvolver uma solução SaaS para um
+problema do cotidiano, decidi criar uma plataforma de automação de atendimento ao cliente utilizando inteligência
+artificial e que seja barata, eficiente e personalizável.
+
+Como o projeto foi desenvolvido em um curto período de tempo, algumas funcionalidades ainda estão em desenvolvimento,
+sendo assimo projeto ainda não está pronto para produção. No entanto, a base do projeto está pronta e funcional,
+permitindo a adição de novas funcionalidades e melhorias no futuro. Além disso o projeto é completamente escalável,
+permitindo a adição de novosrecursos e integrações de forma simples e eficiente.
+
+## 📦 Funcionalidades
+
+- 🌐 Automatização de atendimento ao cliente
+- 🤖 Chatbot com inteligência artificial
+- 📧 Visualização de conversas e interações em tempo real (em desenvolvimento)
+- 📊 Análise de dados e métricas (em fase de planejamento)
+- 📱 Suporte a outras plataformas de mensagens além do WhatsApp (em fase de planejamento)
+
+## ❓ Como Funciona
+
+Para o projeto funcionar de maneira eficiente e escalável, fazemos bastante uso do Redis para cacheamento de respostas e
+bloqueios distribuídos. No back-end atualmente temos um Manager responsável por gerenciar as sessões de cada Bot, além
+disso temos o Express com Remix para servir a aplicação e interagir com o banco de dados relacional. As credenciais de
+autenticação de cada Bot são armazenadas em um banco de dados não relacional, devido a flexibilidade que ele oferece.
+
 ## 📚 Bibliotecas Principais
 
 Este projeto utiliza várias bibliotecas importantes para garantir sua funcionalidade e desempenho. Aqui estão algumas
@@ -187,7 +218,7 @@ E então, você pode se conectar ao Redis localmente, usando a URL no seguinte p
 REDIS_URL="redis://<user>:<password>@localhost:16379"
 ```
 
-## Deploy na Vercel (Não recomendado)
+## 🌍 Deploy na Vercel (Não recomendado)
 
 Para fazer um deploy na Vercel, você precisa instalar o CLI da Vercel:
 
