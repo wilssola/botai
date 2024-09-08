@@ -16,6 +16,7 @@ das principais:
 - **🚀 Express**: Framework para Node.js que facilita a criação de APIs e manipulação de requisições HTTP.
 - **💬 Socket.io**: Biblioteca para comunicação em tempo real entre o servidor e o cliente.
 - **🧠 Redis**: Utilizado para armazenamento em cache e gerenciamento de sessões, melhorando a performance da aplicação.
+- **🐘 PostgreSQL**: Banco de dados relacional utilizado para armazenar dados de forma estruturada e eficiente.
 - **🍃 MongoDB**: Banco de dados NoSQL utilizado para armazenar dados de forma flexível e escalável.
 - **🎨 TailwindCSS**: Framework de CSS utilitário para estilização rápida e eficiente da interface.
 - **🔷 TypeScript**: Superset de JavaScript que adiciona tipagem estática, ajudando a evitar erros e melhorar a
