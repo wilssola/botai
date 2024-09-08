@@ -3,7 +3,32 @@
 - 📖 [BotAI](https://botai.tecwolf.com.br)
 - 📖 [BotAI Docs](https://botai.tecwolf.com.br/docs)
 
-## Modo de Desenvolvimento
+## 📚 Bibliotecas Principais
+
+Este projeto utiliza várias bibliotecas importantes para garantir sua funcionalidade e desempenho. Aqui estão algumas
+das principais:
+
+- **🌐 Remix**: Framework full-stack para React que facilita a construção de aplicações web com renderização no servidor
+  e no cliente.
+- **⚛️ React**: Utilizado para construir a interface do usuário de forma declarativa e eficiente.
+- **🟢 Node.js**: Plataforma de execução para o servidor, permitindo a construção de aplicações escaláveis.
+- **🔗 Prisma**: ORM utilizado para interagir com o banco de dados de forma segura e eficiente.
+- **🚀 Express**: Framework para Node.js que facilita a criação de APIs e manipulação de requisições HTTP.
+- **💬 Socket.io**: Biblioteca para comunicação em tempo real entre o servidor e o cliente.
+- **🧠 Redis**: Utilizado para armazenamento em cache e gerenciamento de sessões, melhorando a performance da aplicação.
+- **🍃 MongoDB**: Banco de dados NoSQL utilizado para armazenar dados de forma flexível e escalável.
+- **🎨 TailwindCSS**: Framework de CSS utilitário para estilização rápida e eficiente da interface.
+- **🔷 TypeScript**: Superset de JavaScript que adiciona tipagem estática, ajudando a evitar erros e melhorar a
+  manutenção do código.
+- **⚡ Vite**: Ferramenta de build rápida e moderna para projetos front-end.
+- **🔍 Zod**: Biblioteca de validação de esquemas para TypeScript e JavaScript, garantindo a integridade dos dados.
+- **🧪 Jest**: Framework de testes utilizado para garantir a qualidade e funcionalidade do código.
+- **☁️ Fly.io**: Plataforma de hospedagem recomendada para deploy da aplicação, com suporte a Docker e integração com
+  PostgreSQL e Redis.
+
+Essas bibliotecas foram escolhidas para garantir que o projeto seja robusto, escalável e fácil de manter.
+
+## 🛠️ Modo de Desenvolvimento
 
 Primeiro, instale as dependências:
 
@@ -18,7 +43,7 @@ Depois disso, inicie a aplicação no modo de desenvolvimento:
 npm run dev
 ```
 
-## Modo de Produção
+## 🚀 Modo de Produção
 
 Inicie a aplicação no modo de produção:
 
@@ -30,7 +55,7 @@ Agora você precisará escolher um host para subir a aplicação.
 
 Recomendamos o uso do [Fly](https://fly.io/).
 
-## Deploy no Fly
+## 🌍 Deploy no Fly
 
 Para criar um novo app no Fly, sem fazer o deploy da aplicação logo em seguida, use o seguinte comando:
 
@@ -47,6 +72,7 @@ flyctl secrets set APP_DOMAIN=""
 
 flyctl secrets set DATABASE_URL=""
 flyctl secrets set MONGO_URI=""
+flyctl secrets set REDIS_URL=""
 
 flyctl secrets set SESSION_SECRET=""
 
@@ -57,6 +83,13 @@ flyctl secrets set SMTP_HOST=""
 flyctl secrets set SMTP_PORT=587
 flyctl secrets set MAIL_USER=""
 flyctl secrets set MAIL_PASS=""
+
+flyctl secrets set SENTRY_DSN=""
+flyctl secrets set SENTRY_AUTH_TOKEN=""
+
+flyctl secrets set OPENAI_BASE_URL="https://api.groq.com/openai/v1"
+flyctl secrets set OPENAI_MODEL="llama3-8b-8192"
+flyctl secrets set OPENAI_API_KEY=""
 ```
 
 Para fazer o deploy da aplicação no Fly, usando uma build do Docker feita localmente na sua máquina, use o comando:
@@ -72,7 +105,7 @@ comando:
 fly deploy --ha=false
 ```
 
-### Configurando o PostgresSQL [(Saiba mais)](https://fly.io/docs/postgres/connecting/connecting-external/)
+### 🛠️ Configurando o PostgresSQL [(Saiba mais)](https://fly.io/docs/postgres/connecting/connecting-external/)
 
 Para alocar um IP público e permitir conexões externas com o PostgresSQL, você pode usar o comando
 `fly ips allocate-v6`:
@@ -107,9 +140,12 @@ DATABASE_URL="postgres://<username>:<password>@localhost:5432/<app-name>"
 psql "sslmode=require host=<pg-app-name>.fly.dev dbname=<db-name> user=<username> password=<password>"
 ```
 
-### Configurando o Prisma Pulse [(Saiba mais)](https://www.prisma.io/docs/pulse/database-setup/general-database-instructions)
+### 🛠️ Configurando o Realtime (Prisma Pulse) [(Saiba mais)](https://www.prisma.io/docs/pulse/database-setup/general-database-instructions)
 
-Para o Prisma Pulse funcionar corretamente, é necessário configurar o PostgresSQL no Fly.
+- Obs.: No momento, o Prisma Pulse não é mais necessário para o funcionamento do projeto.
+
+Para usar o realtime no PostgresSQL funcionar corretamente, por exemplo fazendo o uso Prisma Pulse, é necessário
+configurar o PostgresSQL no Fly.
 Primeiro, verifique se o `wal_level` do PostgresSQL no Fly está configurado para `logical`:
 
 ```sh
@@ -122,7 +158,7 @@ Caso o `wal_level` do PostgresSQL no Fly não esteja configurado para `logical`,
 fly postgres config update --wal-level logical --app <pg-app-name>
 ```
 
-### Configurando o Redis [(Saiba mais)](https://fly.io/docs/upstash/redis/)
+### 🛠️ Configurando o Redis [(Saiba mais)](https://fly.io/docs/upstash/redis/)
 
 Para criar um novo Redis no Fly, use o seguinte comando:
 
@@ -133,7 +169,7 @@ fly redis create
 Para se conectar bastar usar a URL no seguinte padrão:
 
 ```
-redis://<user>:<password>@fly-<redis-app-name>.upstash.websocket:6379
+redis://<user>:<password>@fly-<redis-app-name>.upstash.io:6379
 ```
 
 Para acessar o Redis localmente, você pode usar o comando `fly proxy`:
@@ -148,17 +184,14 @@ E então, você pode se conectar ao Redis localmente, usando a URL no seguinte p
 REDIS_URL="redis://<user>:<password>@localhost:16379"
 ```
 
-### DIY
+### 🛠️ DIY
 
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
+Se você está familiarizado com o deploy de aplicações Node, o servidor de aplicativos Remix embutido está pronto para
+produção.
 
-Make sure to deploy the output of `npm run build`
+Certifique-se de fazer o deploy do output do comando `npm run build`
 
 - `build/server`
 - `build/client`
 
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting
-experience. You can use whatever css framework you prefer. See
-the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+- Obs.: O remix não vai "compilar" o back-end do Bot, então você precisa fazer isso manualmente.
