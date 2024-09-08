@@ -56,7 +56,9 @@ Agora você precisará escolher um host para subir a aplicação.
 
 Recomendamos o uso do [Fly](https://fly.io/).
 
-## 🌍 Deploy no Fly
+## 🌍 Deploy no Fly (Recomendado)
+
+Antes de tudo você precisa instalar o [Fly CTL](https://fly.io/docs/getting-started/installing-flyctl/).
 
 Para criar um novo app no Fly, sem fazer o deploy da aplicação logo em seguida, use o seguinte comando:
 
@@ -185,7 +187,7 @@ E então, você pode se conectar ao Redis localmente, usando a URL no seguinte p
 REDIS_URL="redis://<user>:<password>@localhost:16379"
 ```
 
-## Deploy na Vercel
+## Deploy na Vercel (Não recomendado)
 
 Para fazer um deploy na Vercel, você precisa instalar o CLI da Vercel:
 
@@ -215,6 +217,26 @@ Depois disso defina as variáveis de ambiente no painel da Vercel em:
 
 ```
 https://vercel.com/<org-name>/<app-name>/settings/environment-variables
+```
+
+### 🛠️ Configurando o PostgresSQL
+
+Como a Vercel não oferece soluções de banco de dados, você pode usar o [Supabase](https://supabase.com/).
+
+Basta criar um projeto e configurar o banco de dados, e então você pode usar a URL de conexão no seguinte padrão:
+
+```
+DATABASE_URL="postgres://<user>:<password>@<project-name>.supabase.co:5432/<db-name>"
+```
+
+### 🛠️ Configurando o Redis
+
+Como a Vercel não oferece soluções de chave-valor, você pode usar o [Upstash](https://upstash.com/).
+
+Basta criar um projeto e então você pode usar a URL de conexão no seguinte padrão:
+
+```
+REDIS_URL="redis://<user>:<password>@<project-name>.upstash.io:6379"
 ```
 
 ### 🛠️ DIY
