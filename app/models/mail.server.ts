@@ -15,7 +15,7 @@ import {logger} from "~/logger";
  */
 export async function sendMailAuthVerification(
   user: User,
-  mailAuth: MailAuth | null
+  mailAuth?: MailAuth | null
 ): Promise<MailAuth | null> {
   if (!emailSMTP) {
     logger.error("SMTP configuration is not set up");

@@ -1,6 +1,6 @@
 import {redis} from "~/services/redis.server";
 import {v6} from "uuid";
-import {AuthenticationState, DisconnectReason, makeWASocket, UserFacingSocketConfig,} from "baileys";
+import {AuthenticationState, DisconnectReason, isJidUser, makeWASocket, UserFacingSocketConfig,} from "baileys";
 import {MessageUpsertType, WAMessage} from "baileys/lib/Types/Message";
 import {Boom} from "@hapi/boom";
 import {logger} from "~/logger";
@@ -13,7 +13,7 @@ import {Logger} from "pino";
  * @returns A Redis key in the format "lock:whatsapp-session:<sessionId>".
  */
 const LOCK_KEY = (sessionId: string): string => {
-  return `lock:whatsapp-session:${sessionId}`;
+  return `lock:bot-session-whatsapp:${sessionId}`;
 };
 
 /**
@@ -161,6 +161,7 @@ export class WhatsAppSession {
       qrTimeout: undefined,
       defaultQueryTimeoutMs: undefined,
       logger: logger as Logger | undefined,
+      shouldIgnoreJid: (jid) => !isJidUser(jid),
     } as UserFacingSocketConfig;
   }
 
@@ -214,6 +215,7 @@ export class WhatsAppSession {
 
       this.client = makeWASocket(this.config);
       this.registerEventHandlers();
+      this.startLockRenewal();
 
       logger.info(`WhatsApp client restarted for session ${this.sessionId}`);
     } catch (error) {

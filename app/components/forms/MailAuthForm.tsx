@@ -9,33 +9,33 @@ type MailAuthFormProps = {
 
 export default function MailAuthForm(props: MailAuthFormProps) {
   return (
-    <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <div className="mx-auto h-10 w-auto flex justify-center items-center">
-          <Logo />
+    <div className="flex w-screen h-screen items-center justify-center px-6 py-12 lg:px-8 bg-blue-950">
+      <div className="bg-white shadow-lg rounded-lg p-8 flex flex-col items-center space-y-6">
+        <div className="flex items-center space-x-4">
+          <div className="h-10 w-auto flex items-center">
+            <Logo />
+          </div>
+          <h2 className="text-2xl font-semibold leading-9 tracking-tight text-gray-900 flex items-center">
+            Verifique seu email
+          </h2>
         </div>
-        <h2 className="mt-10 text-center text-2xl font-semibold leading-9 tracking-tight text-gray-900">
-          Verifique seu email
-        </h2>
-      </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <Form className="space-y-6" method="POST">
-          <div>
+        <Form className="space-y-6 w-full" method="POST">
+          <div className="flex flex-col space-y-4">
             <AuthInput
               id="code"
               name="code"
               type="code"
               label="Código"
               placeholder="Digite seu código"
-              required={true}
-            ></AuthInput>
+              required
+            />
           </div>
 
           <div>
             <button
               type="submit"
-              className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              className="flex w-full justify-center rounded-md bg-blue-500 hover:bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
             >
               Verificar
             </button>

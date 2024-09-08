@@ -17,7 +17,7 @@ export async function askAI(prompt: string, question: string) {
         content: question,
       },
     ],
-    model: "llama3-8b-8192",
+    model: process.env.OPENAI_MODEL!,
     max_tokens: 100,
   });
 

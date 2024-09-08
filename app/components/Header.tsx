@@ -20,13 +20,7 @@ import { FaX } from "react-icons/fa6";
 import { Link, NavLink } from "@remix-run/react";
 import { createElement, useState } from "react";
 import Logo from "./Logo";
-import {
-  FEATURES_PATH,
-  LOGIN_PATH,
-  PRICING_PATH,
-  PRODUCTS_PATH,
-  PRODUCTS_PATH_WHATSAPP_BOT,
-} from "~/routes";
+import { LOGIN_PATH, PRICING_PATH, PRODUCTS_PATH_WHATSAPP_BOT } from "~/routes";
 import { IconType } from "react-icons";
 import { LuSparkles } from "react-icons/lu";
 
@@ -40,12 +34,12 @@ type HeaderLink = {
 const headerLinks: Omit<HeaderLink, "description">[] = [
   {
     name: "Produtos",
-    href: PRODUCTS_PATH,
+    href: "#products",
     icon: FaStore,
   },
   {
     name: "Recursos",
-    href: FEATURES_PATH,
+    href: "#features",
     icon: LuSparkles,
   },
   {

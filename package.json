@@ -33,6 +33,7 @@
     "@types/express-session": "^1.18.0",
     "@types/react-tag-input": "^6.6.6",
     "@zenstackhq/runtime": "2.4.1",
+    "animated-backgrounds": "^1.0.8",
     "argon2": "^0.40.3",
     "avvvatars-react": "^0.4.2",
     "baileys": "github:WhiskeySockets/Baileys",

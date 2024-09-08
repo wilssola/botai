@@ -86,7 +86,7 @@ export default function Login() {
     <>
       <AuthForm
         mode="login"
-        hcaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
+        hCaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
         actionData={actionData}
       ></AuthForm>
     </>

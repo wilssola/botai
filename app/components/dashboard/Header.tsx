@@ -9,24 +9,16 @@ import {
 } from "@headlessui/react";
 import { FaBars } from "react-icons/fa";
 import { FaX } from "react-icons/fa6";
-import {
-  DASHBOARD_CHAT_PATH,
-  DASHBOARD_PATH,
-  DASHBOARD_USERS_PATH,
-} from "~/routes";
+import { DASHBOARD_PATH, LOGOUT_PATH } from "~/routes";
 import Avvvatars from "avvvatars-react";
 import { User } from "@prisma/client";
 import Logo from "~/components/Logo";
 import { NavLink } from "@remix-run/react";
 import { UserSession } from "~/services/auth.server";
 
-const navigation = [
-  { name: "Painel", href: DASHBOARD_PATH },
-  { name: "Chat", href: DASHBOARD_CHAT_PATH },
-  { name: "Usuários", href: DASHBOARD_USERS_PATH },
-];
+const navigation = [{ name: "Painel", href: DASHBOARD_PATH }];
 
-const userNavigation = [{ name: "Sair", href: "#" }];
+const userNavigation = [{ name: "Sair", href: LOGOUT_PATH }];
 
 type HeaderProps = {
   user: User | UserSession;

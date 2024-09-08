@@ -220,9 +220,6 @@ export default function Dashboard(): React.ReactElement {
     }) ?? "{}"
   );
 
-  const [whatsappReceive, setWhatsappReceive] = useState<string[]>([]);
-  const [whatsappSend, setWhatsappSend] = useState<string[]>([]);
-
   useEffect(() => {
     if (!socket) {
       return;
@@ -232,11 +229,6 @@ export default function Dashboard(): React.ReactElement {
       logger.info(`Received event from Server (${socket.id}):`, data);
     });
   }, [socket]);
-
-  useEffect(() => {
-    setWhatsappReceive((prev) => [...prev, ""]);
-    setWhatsappSend((prev) => [...prev, ""]);
-  }, [botSession.id]);
 
   useEffect(() => {
     setOpenForm(false);
@@ -264,7 +256,7 @@ export default function Dashboard(): React.ReactElement {
           </div>
 
           <TokenInput
-            buttonClassName="bg-gray-700"
+            buttonClassName="bg-gray-700 hover:bg-gray-800"
             value={botSessionSSE.whatsappQr ?? botSession.whatsappQr ?? ""}
           />
         </div>
@@ -277,158 +269,188 @@ export default function Dashboard(): React.ReactElement {
       <Header user={user as UserSession} />
 
       <main>
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-4">
-          <div className="flex items-end justify-end">
-            <button
-              className="rounded-md bg-green-500 hover:bg-green-600 px-4 py-2 text-white text-sm flex items-center justify-center"
-              onClick={() => {
-                setPropsForm({ mode: "create", sessionId: botSession.id });
-                setOpenForm(true);
-              }}
-            >
-              Criar comando <FaPlus className="ml-2" />
-            </button>
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex justify-end space-x-4">
+            <div className="grid grid-cols-1 gap-4 w-full">
+              <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2">
+                <h2 className="text-xl font-semibold text-black">Sessão</h2>
+                <div className="flex justify-between space-x-4">
+                  <p
+                    className={`${
+                      botSession && botSession.state
+                        ? "bg-green-400"
+                        : "bg-red-400"
+                    } text-white p-3 rounded-md shadow-md min-w-24 text-center`}
+                  >
+                    {botSession && botSession.state
+                      ? botSession.state.status
+                      : "OFFLINE"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 min-w-fit">
+              <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2">
+                <h2 className="text-xl font-semibold text-black">QR Codes</h2>
+                {qrCode()}
+              </div>
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm rtl:text-right text-white rounded-md bg-gray-600 p-6 text-center overflow-x-auto">
-              <thead className="bg-gray-900">
-                <tr>
-                  <th className="p-4 rounded-tl-md">Nome</th>
-                  <th className="p-2">Comandos</th>
-                  <th className="p-2">Resposta</th>
-                  <th className="p-2">IA</th>
-                  <th className="p-2">IA Prompt</th>
-                  <th className="p-2">Prioridade</th>
-                  {/*<th className="p-2">Subcomandos</th>*/}
-                  <th className="p-2"></th>
-                  <th className="p-4 rounded-tr-md"></th>
-                </tr>
-              </thead>
-              {botSession.commands && botSession.commands.length > 0 ? (
-                <tbody>
-                  {botSession.commands
-                    .sort(
-                      (a, b) =>
-                        new Date(a.createdAt).getTime() -
-                        new Date(b.createdAt).getTime()
-                    )
-                    .map((command, index) => {
-                      return (
-                        <tr
-                          key={command.id}
-                          className={`${
-                            index % 2 == 0 ? "bg-gray-600" : "bg-gray-700"
-                          }`}
-                        >
-                          <td
-                            className={`p-4 ${
-                              index === botSession.commands.length - 1
-                                ? "rounded-bl-md"
-                                : ""
+          <div className="p-4 bg-gray-200 rounded-md shadow-md">
+            <div className="flex items-end justify-between pt-4 pb-4">
+              <h2 className="text-xl font-semibold black">Comandos</h2>
+
+              <button
+                className="rounded-md bg-green-500 hover:bg-green-600 px-4 py-2 text-white text-sm flex items-center justify-center shadow-md"
+                onClick={() => {
+                  setPropsForm({ mode: "create", sessionId: botSession.id });
+                  setOpenForm(true);
+                }}
+              >
+                Criar comando <FaPlus className="ml-2" />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm rtl:text-right text-white rounded-md bg-gray-600 text-center overflow-x-auto">
+                <thead className="bg-gray-900">
+                  <tr>
+                    <th className="p-4 rounded-tl-md">Nome</th>
+                    <th className="p-2">Comandos</th>
+                    <th className="p-2">Resposta</th>
+                    <th className="p-2">IA</th>
+                    <th className="p-2">IA Prompt</th>
+                    <th className="p-2">Prioridade</th>
+                    {/*<th className="p-2">Subcomandos</th>*/}
+                    <th className="p-2"></th>
+                    <th className="p-4 rounded-tr-md"></th>
+                  </tr>
+                </thead>
+                {botSession.commands && botSession.commands.length > 0 ? (
+                  <tbody>
+                    {botSession.commands
+                      .sort(
+                        (a, b) =>
+                          new Date(a.createdAt).getTime() -
+                          new Date(b.createdAt).getTime()
+                      )
+                      .map((command, index) => {
+                        return (
+                          <tr
+                            key={command.id}
+                            className={`${
+                              index % 2 == 0 ? "bg-gray-600" : "bg-gray-700"
                             }`}
                           >
-                            {command.name}
-                          </td>
-                          <td className="pb-4 pt-4 grid grid-cols-3 gap-x-0.5 gap-y-0.5">
-                            {command.inputs.map((input) => {
-                              return (
-                                <span
-                                  key={input}
-                                  className="bg-gray-800 p-1 rounded-md truncate text-sm"
-                                >
-                                  {input}
-                                </span>
-                              );
-                            })}
-                          </td>
-                          <td className="pb-4 pt-4 pl-1 pr-1">
-                            <textarea
-                              className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                              value={command.output ?? ""}
-                              readOnly
-                            />
-                          </td>
-                          <td className="pb-4 pt-4">
-                            <input
-                              className="appearance-none w-4 h-4 border-black-500 rounded-sm bg-red-600 mt-1 checked:bg-green-600"
-                              type="checkbox"
-                              defaultChecked={command.enableAi}
-                              disabled
-                            />
-                          </td>
-                          <td className="pb-4 pt-4 pl-1 pr-1">
-                            <textarea
-                              className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                              value={command.promptAi ?? ""}
-                              readOnly
-                            />
-                          </td>
-                          <td className="pb-4 pt-4">{command.priority}</td>
-                          {/*<td className="pb-4 pt-4">
+                            <td
+                              className={`p-4 ${
+                                index === botSession.commands.length - 1
+                                  ? "rounded-bl-md"
+                                  : ""
+                              }`}
+                            >
+                              {command.name}
+                            </td>
+                            <td className="pb-4 pt-4 grid grid-cols-3 gap-x-0.5 gap-y-0.5">
+                              {command.inputs.map((input) => {
+                                return (
+                                  <span
+                                    key={input}
+                                    className="bg-gray-800 p-1 rounded-md truncate text-sm"
+                                  >
+                                    {input}
+                                  </span>
+                                );
+                              })}
+                            </td>
+                            <td className="pb-4 pt-4 pl-1 pr-1">
+                              <textarea
+                                className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                                value={command.output ?? ""}
+                                readOnly
+                              />
+                            </td>
+                            <td className="pb-4 pt-4">
+                              <input
+                                className="appearance-none w-4 h-4 border-black-500 rounded-sm bg-red-600 mt-1 checked:bg-green-600"
+                                type="checkbox"
+                                defaultChecked={command.enableAi}
+                                disabled
+                              />
+                            </td>
+                            <td className="pb-4 pt-4 pl-1 pr-1">
+                              <textarea
+                                className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                                value={command.promptAi ?? ""}
+                                readOnly
+                              />
+                            </td>
+                            <td className="pb-4 pt-4">{command.priority}</td>
+                            {/*<td className="pb-4 pt-4">
                           {command.children.map((child) =>
                             JSON.stringify(child)
                           )}
                         </td>*/}
-                          <td className="p-1">
-                            <button
-                              className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
-                              onClick={() => {
-                                setPropsForm({
-                                  mode: "update",
-                                  id: command.id,
-                                  sessionId: command.sessionId,
-                                  name: command.name,
-                                  inputs: command.inputs,
-                                  output: command.output,
-                                  enableAi: command.enableAi,
-                                  promptAi: command.promptAi ?? "",
-                                  priority: command.priority,
-                                  subCommandIds: command.children.map(
-                                    (child) => child.id
-                                  ),
-                                });
-                                setOpenForm(true);
-                              }}
+                            <td className="p-1">
+                              <button
+                                className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
+                                onClick={() => {
+                                  setPropsForm({
+                                    mode: "update",
+                                    id: command.id,
+                                    sessionId: command.sessionId,
+                                    name: command.name,
+                                    inputs: command.inputs,
+                                    output: command.output,
+                                    enableAi: command.enableAi,
+                                    promptAi: command.promptAi ?? "",
+                                    priority: command.priority,
+                                    subCommandIds: command.children.map(
+                                      (child) => child.id
+                                    ),
+                                  });
+                                  setOpenForm(true);
+                                }}
+                              >
+                                <FaEdit />
+                              </button>
+                            </td>
+                            <td
+                              className={`p-1 ${
+                                index === botSession.commands.length - 1
+                                  ? "rounded-br-md"
+                                  : ""
+                              }`}
                             >
-                              <FaEdit />
-                            </button>
-                          </td>
-                          <td
-                            className={`p-1 ${
-                              index === botSession.commands.length - 1
-                                ? "rounded-br-md"
-                                : ""
-                            }`}
-                          >
-                            <button
-                              className="bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
-                              onClick={() => {
-                                setPropsForm({
-                                  mode: "delete",
-                                  id: command.id,
-                                });
-                                setOpenForm(true);
-                              }}
-                            >
-                              <FaTrash />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              ) : (
-                <tbody className="flex items-center justify-center p-6">
-                  <tr>
-                    <td>Não há comandos criados</td>
-                  </tr>
-                </tbody>
-              )}
-            </table>
+                              <button
+                                className="bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
+                                onClick={() => {
+                                  setPropsForm({
+                                    mode: "delete",
+                                    id: command.id,
+                                  });
+                                  setOpenForm(true);
+                                }}
+                              >
+                                <FaTrash />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                ) : (
+                  <tbody className="flex items-center justify-center p-6">
+                    <tr>
+                      <td>Não há comandos criados</td>
+                    </tr>
+                  </tbody>
+                )}
+              </table>
+            </div>
           </div>
-
-          {qrCode()}
         </div>
       </main>
 

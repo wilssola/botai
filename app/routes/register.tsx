@@ -91,7 +91,7 @@ export default function Register() {
     <>
       <AuthForm
         mode="register"
-        hcaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
+        hCaptchaSiteKey={ENV.HCAPTCHA_SITEKEY}
         actionData={actionData}
       ></AuthForm>
     </>

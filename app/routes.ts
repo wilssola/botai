@@ -14,6 +14,11 @@ export const LOGIN_PATH = "/login";
 export const REGISTER_PATH = "/register";
 
 /**
+ * Logout path constant.
+ */
+export const LOGOUT_PATH = "/logout";
+
+/**
  * Forgot password path constant.
  */
 export const FORGOT_PASSWORD_PATH = "/forgot-password";
@@ -59,6 +64,11 @@ export const DASHBOARD_CHAT_PATH = `${DASHBOARD_PATH}/chat`;
 export const DASHBOARD_USERS_PATH = `${DASHBOARD_PATH}/users`;
 
 /**
- * WhatsApp QR SSE path constant.
+ * Bot session SSE path constant.
  */
 export const BOT_SESSION_SSE_PATH = "/sse/bot-session";
+
+/**
+ * Bot chat SSE path constant.
+ */
+export const BOT_CHAT_SSE_PATH = "/sse/bot-chat";
