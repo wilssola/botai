@@ -329,7 +329,7 @@ export default function Dashboard(): React.ReactElement {
 
       <main>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-between space-x-4">
             <div className="grid grid-cols-1 gap-4 w-full">
               <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2">
                 <h2 className="text-xl font-semibold text-black">Status</h2>
