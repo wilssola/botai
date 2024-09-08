@@ -1,7 +1,6 @@
 # Bem-vindo ao repositório do BotAI!
 
-- 📖 [BotAI](https://botai.tecwolf.com.br)
-- 📖 [BotAI Docs](https://botai.tecwolf.com.br/docs)
+- 🤖 [BotAI](https://botai.tecwolf.com.br)
 
 ## 📝 Sobre o Projeto
 
