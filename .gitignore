@@ -13,3 +13,4 @@ npm-debug.log
 .env.sentry-build-plugin
 
 vite.config.ts.timestamp-*.mjs
+.vercel

@@ -185,6 +185,38 @@ E então, você pode se conectar ao Redis localmente, usando a URL no seguinte p
 REDIS_URL="redis://<user>:<password>@localhost:16379"
 ```
 
+## Deploy na Vercel
+
+Para fazer um deploy na Vercel, você precisa instalar o CLI da Vercel:
+
+```sh
+npm i -g vercel
+```
+
+E então, você pode fazer o login na CLI da Vercel e em seguida o deploy usando:
+
+```sh
+vercel
+```
+
+O CLI vai perguntar se desejar alterar os comandos do projeto, aceite e defina o comando de build para:
+
+```sh
+npm run db-generate && npm run build
+```
+
+Faça o mesmo para o comando de dev, definindo como:
+
+```sh
+npm run dev
+```
+
+Depois disso defina as variáveis de ambiente no painel da Vercel em:
+
+```
+https://vercel.com/<org-name>/<app-name>/settings/environment-variables
+```
+
 ### 🛠️ DIY
 
 Se você está familiarizado com o deploy de aplicações Node, o servidor de aplicativos Remix embutido está pronto para
