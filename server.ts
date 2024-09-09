@@ -4,10 +4,17 @@ import { handleBot } from "~/bot.server";
 import { app } from "./app";
 import { logger } from "~/logger";
 import { Server } from "socket.io";
+import events from "events";
 
 export const APP_URL = process.env.APP_URL || "0.0.0.0";
 export const PORT = process.env.PORT || 3000;
 export const ADDRESS = `http://${APP_URL}:${PORT}`;
+
+export const MAX_LISTENERS = 5;
+
+// Increase the maximum number of listeners
+// Useful for SSE events or WebSocket connections
+events.setMaxListeners(MAX_LISTENERS);
 
 /**
  * Create HTTP server from Express app.

@@ -18,7 +18,6 @@ export async function askAI(prompt: string, question: string) {
       },
     ],
     model: process.env.OPENAI_MODEL!,
-    max_tokens: 100,
   });
 
   return response.choices[0].message.content;

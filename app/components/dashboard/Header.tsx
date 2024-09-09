@@ -66,7 +66,10 @@ export default function Header(props: HeaderProps): ReactElement {
                         <span className="absolute -inset-1.5" />
                         <span className="sr-only">Usuário</span>
                         <div className="h-8 w-8 rounded-full">
-                          <Gravatar email={props.email ?? ""} />
+                          <Gravatar
+                            className="h-8 w-8 rounded-full"
+                            email={props.email ?? ""}
+                          />
                         </div>
                       </MenuButton>
                     </div>
@@ -122,7 +125,10 @@ export default function Header(props: HeaderProps): ReactElement {
               <div className="flex items-center px-5">
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full">
-                    <Gravatar email={props.email ?? ""} />
+                    <Gravatar
+                      className="h-10 w-10 rounded-full"
+                      email={props.email ?? ""}
+                    />
                   </div>
                 </div>
                 <div className="ml-3">

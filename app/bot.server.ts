@@ -480,7 +480,7 @@ function handleBotProcess() {
    */
   process.on("SIGTERM", async (signal) => {
     await stopBots();
-    logger.warn(`Process ${process.pid} has been killed`, signal);
+    logger.warn(`Process ${process.pid} has been killed: ${signal}`);
     process.exit(0);
   });
 
@@ -492,7 +492,7 @@ function handleBotProcess() {
    */
   process.on("SIGINT", async (signal) => {
     await stopBots();
-    logger.warn(`Process ${process.pid} has been interrupted`, signal);
+    logger.warn(`Process ${process.pid} has been interrupted: ${signal}`);
     process.exit(0);
   });
 
@@ -504,7 +504,7 @@ function handleBotProcess() {
    */
   process.on("uncaughtException", async (error) => {
     await stopBots();
-    logger.warn(`Uncaught exception`, error.message);
+    logger.warn(`Uncaught exception: ${error}`);
     process.exit(1);
   });
 }

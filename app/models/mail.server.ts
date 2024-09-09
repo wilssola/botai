@@ -20,8 +20,8 @@ export async function sendMailAuthVerification(
 ): Promise<MailAuth | null> {
   // Check if SMTP configuration is set up
   if (!SMTP_SETUP) {
-    logger.error("SMTP configuration is not set up");
-    logger.warn("Ignoring mail authentication verification");
+    logger.warn("SMTP configuration is not set up");
+    logger.warn("Cannot send mail authentication verification email");
     return null;
   }
 
@@ -61,7 +61,7 @@ export async function checkMailAuthVerified(
 ): Promise<Response | void> {
   // Check if SMTP configuration is set up
   if (!SMTP_SETUP) {
-    logger.error("SMTP configuration is not set up");
+    logger.warn("SMTP configuration is not set up");
     logger.warn("Ignoring mail authentication verification");
     return;
   }

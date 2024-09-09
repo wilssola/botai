@@ -7,10 +7,10 @@
     --pending-link: var(--active-link);
 }
 
-a.active {
+a.active, a.active * {
     color: var(--active-link) !important;
 }
 
-a.pending {
+a.pending, a.pending * {
     color: var(--pending-link) !important;
 }

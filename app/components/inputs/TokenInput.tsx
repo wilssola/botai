@@ -23,7 +23,7 @@ export default function TokenInput(props: TokenInputProps): ReactElement {
       <input
         className={`block w-full rounded-md p-2 text-gray-900 shadow-sm ${props.className}`}
         type={isVisible ? "text" : "password"} // Toggle between text and password type
-        value={props.value}
+        defaultValue={props.value}
         readOnly
       />
       {/* Button to toggle the visibility of the token */}

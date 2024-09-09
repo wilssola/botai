@@ -6,6 +6,7 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "tsx ./server.ts | pino-pretty",
+    "dev-warning": "tsx --trace-warnings ./server.ts | pino-pretty",
     "start": "cross-env NODE_ENV=production tsx ./server.ts | pino-pretty",
     "container": "npm run db-push && cross-env NODE_ENV=production tsx ./server.ts | pino-pretty",
     "docs": "typedoc --options typedoc.json",
@@ -64,6 +65,7 @@
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "string-similarity": "^4.0.4",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.0",
     "uuid": "^10.0.0",
     "zod": "^3.23.8"

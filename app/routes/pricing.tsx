@@ -1,9 +1,10 @@
 import { FaCheck } from "react-icons/fa";
-import { REGISTER_PATH } from "~/routes";
+import { PRICING_PATH, REGISTER_PATH } from "~/routes";
 import Header from "~/components/Header";
 import { Link } from "@remix-run/react";
 import Footer from "~/components/Footer";
 import { ReactElement } from "react";
+import { defaultMeta } from "~/utils/default-meta";
 
 // Features included in the free plan
 const freePlanFeatures = [
@@ -11,6 +12,8 @@ const freePlanFeatures = [
   "Integração com WhatsApp",
   "Inteligência Artificial",
 ];
+
+export const meta = () => defaultMeta("Preços", PRICING_PATH);
 
 /**
  * Component for the pricing page.
