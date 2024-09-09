@@ -14,12 +14,12 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   const abortListener = () => controller.abort();
   request.signal.addEventListener("abort", abortListener);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return eventStream(controller.signal, (send, abort) => {
     async function run() {
       const user = await getUserSession(request);
-
       if (!user) {
-        return "";
+        return;
       }
 
       for await (const _ of interval(SEND_INTERVAL, {
@@ -27,7 +27,7 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
       })) {
         const botSession = await getBotSessionByUserId(user.id, request);
         if (!botSession) {
-          return "";
+          return;
         }
 
         try {
