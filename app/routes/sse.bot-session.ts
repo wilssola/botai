@@ -1,6 +1,5 @@
 import { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { eventStream } from "remix-utils/sse/server";
-import { interval } from "remix-utils/timers";
 import { getUserSession } from "~/services/auth.server";
 import { getBotSessionByUserId } from "~/models/bot.server";
 import { logger } from "~/logger";
@@ -15,37 +14,38 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   request.signal.addEventListener("abort", abortListener);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return eventStream(controller.signal, (send, abort) => {
-    async function run() {
+  return eventStream(controller.signal, (send) => {
+    const timer = setInterval(async () => {
       const user = await getUserSession(request);
       if (!user) {
+        send({
+          event: BOT_SESSION_SSE_EVENT,
+          data: "",
+        });
         return;
       }
 
-      for await (const _ of interval(SEND_INTERVAL, {
-        signal: controller.signal,
-      })) {
-        const botSession = await getBotSessionByUserId(user.id, request);
-        if (!botSession) {
-          return;
-        }
-
-        try {
-          send({
-            event: BOT_SESSION_SSE_EVENT,
-            data: JSON.stringify(botSession),
-          });
-        } catch (error) {
-          logger.error(`Cannot send bot session data: ${error}`);
-        }
+      const botSession = await getBotSessionByUserId(user.id, request);
+      if (!botSession) {
+        send({
+          event: BOT_SESSION_SSE_EVENT,
+          data: "",
+        });
+        return;
       }
-    }
 
-    run().then(() => {
-      logger.info("Bot session SSE stream completed");
-    });
+      try {
+        send({
+          event: BOT_SESSION_SSE_EVENT,
+          data: JSON.stringify(botSession),
+        });
+      } catch (error) {
+        logger.error(`Cannot send bot session data: ${error}`);
+      }
+    }, SEND_INTERVAL);
 
-    return function clear() {
+    return () => {
+      clearInterval(timer);
       request.signal.removeEventListener("abort", abortListener);
       controller.abort();
     };
