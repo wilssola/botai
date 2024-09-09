@@ -94,10 +94,10 @@ export async function deleteBotSessionById(
   const query = { where: { id: sessionId } };
 
   if (userReq) {
-    return await (await enhancedb(userReq)).botSession.delete(query);
+    return (await enhancedb(userReq)).botSession.delete(query);
   }
 
-  return await db.botSession.delete(query);
+  return db.botSession.delete(query);
 }
 
 /**
@@ -121,10 +121,10 @@ export async function updateBotSessionById(
   };
 
   if (userReq) {
-    return await (await enhancedb(userReq)).botSession.update(query);
+    return (await enhancedb(userReq)).botSession.update(query);
   }
 
-  return await db.botSession.update(query);
+  return db.botSession.update(query);
 }
 
 export async function createBotCommandBySessionId(

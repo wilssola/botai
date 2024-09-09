@@ -1,4 +1,4 @@
-import { BotCommand, BotState, BotStatus } from "@prisma/client";
+import { BotState, BotStatus } from "@prisma/client";
 import { whatsappManager } from "~/bots/whatsapp.server";
 import {
   getBotCommandsBySessionId,
@@ -129,16 +129,16 @@ async function startBot(bot: BotState): Promise<void> {
       // The callback for when a message is received.
       async (message, client) => {
         /*await storeBotMessage(
-                  bot.sessionId,
-                  message.messages.map((m) => {
-                    return {
-                      id: m.key.id ?? "",
-                      senderId: m.key.remoteJid ?? "",
-                      fromMe: m.key.fromMe ?? false,
-                      message: m.message?.conversation ?? "",
-                    };
-                  })
-                );*/
+                                                                          bot.sessionId,
+                                                                          message.messages.map((m) => {
+                                                                            return {
+                                                                              id: m.key.id ?? "",
+                                                                              senderId: m.key.remoteJid ?? "",
+                                                                              fromMe: m.key.fromMe ?? false,
+                                                                              message: m.message?.conversation ?? "",
+                                                                            };
+                                                                          })
+                                                                        );*/
 
         // Get the last message from the message list.
         const lastMessage = message.messages[0];
@@ -256,11 +256,13 @@ async function sendBotMessage(
   const normalizedMessage = normalize(message);
   const words = normalizedMessage.split(" ");
 
+  const session = await getBotSessionById(sessionId);
   const botCommands = await getBotCommandsBySessionId(sessionId);
 
   // Sort the bot commands by priority in descending order.
   botCommands.sort((a, b) => b.priority - a.priority);
 
+  let match = false;
   for (const botCommand of botCommands) {
     /**
      * Normalize the input commands and compare them to the normalized message.
@@ -268,7 +270,7 @@ async function sendBotMessage(
      * it's considered a match.
      */
     const inputs = botCommand.inputs.map((input) => normalize(input));
-    const match = words.some((word) => {
+    match = words.some((word) => {
       const similarities = inputs.map((input) =>
         stringSimilarity.compareTwoStrings(word, input)
       );
@@ -277,9 +279,30 @@ async function sendBotMessage(
     });
 
     if (match) {
-      await handleBotResponse(sessionId, message, botCommand, sendFunction);
+      await handleBotResponse(
+        sessionId,
+        message,
+        sendFunction,
+        botCommand.id,
+        botCommand.output,
+        botCommand.enableAi,
+        botCommand.promptAi
+      );
       break;
     }
+  }
+
+  // If no match was found, send a default response.
+  if (!match && session) {
+    await handleBotResponse(
+      sessionId,
+      message,
+      sendFunction,
+      "default",
+      "",
+      session.enableAi,
+      session.promptAi
+    );
   }
 }
 
@@ -288,23 +311,29 @@ async function sendBotMessage(
  *
  * @param {string} sessionId - The session ID.
  * @param {string} message - The received message.
- * @param {BotCommand} botCommand - The bot command.
  * @param {(response: string) => Promise<void>} sendFunction - The function to send the response.
+ * @param commandId - The command ID.
+ * @param output - The output of the bot command.
+ * @param enableAi - Whether to enable AI for the bot command.
+ * @param promptAi - The prompt for the AI.
  */
 async function handleBotResponse(
   sessionId: string,
   message: string,
-  botCommand: BotCommand,
-  sendFunction: (response: string) => Promise<void>
+  sendFunction: (response: string) => Promise<void>,
+  commandId: string | "default",
+  output?: string,
+  enableAi?: boolean,
+  promptAi?: string | null
 ): Promise<void> {
   // If the bot command is using AI, get the AI response
-  if (botCommand.enableAi) {
+  if (enableAi) {
     const response = await getAiResponse(
       sessionId,
-      botCommand.id,
-      botCommand.promptAi && botCommand.promptAi.length > 0
-        ? `${botCommand.promptAi} ${botCommand.output}`
-        : botCommand.output,
+      commandId,
+      promptAi && promptAi.length > 0
+        ? `${promptAi} | ${output}`
+        : output ?? "",
       message
     );
 
@@ -312,12 +341,13 @@ async function handleBotResponse(
     if (response) {
       await sendFunction(response);
     }
+
     return;
   }
 
   // If the bot command is not using AI, send the output if it exists
-  if (botCommand.output && botCommand.output.length > 0) {
-    await sendFunction(botCommand.output);
+  if (output && output.length > 0) {
+    await sendFunction(output);
   }
 }
 
