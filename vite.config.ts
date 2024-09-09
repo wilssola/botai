@@ -23,21 +23,4 @@ export default defineConfig({
     sourcemap: true,
     target: "esnext",
   },
-
-  server: {
-    proxy: {
-      "/sse.**": {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        configure: (proxy, options) => {
-          proxy.on("proxyReq", (proxyReq, req, res) => {
-            res.on("close", () => {
-              if (!res.writableEnded) {
-                proxyReq.destroy();
-              }
-            });
-          });
-        },
-      },
-    },
-  },
 });

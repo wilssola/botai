@@ -16,7 +16,15 @@ const SEND_INTERVAL = 2000;
  * @param {Request} context.request - The request object.
  * @returns The event stream response.
  */
-export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
+export const loader: LoaderFunction = async ({
+  request,
+}: LoaderFunctionArgs) => {
+  // Get the user session
+  const user = await getUserSession(request);
+  if (!user) {
+    return "";
+  }
+
   const controller = new AbortController();
   request.signal.addEventListener("abort", () => controller.abort());
 
@@ -25,8 +33,6 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
      * Function to run the SSE stream.
      */
     async function run() {
-      // Get the user session
-      const user = await getUserSession(request);
       if (!user) {
         abort();
         return "";
