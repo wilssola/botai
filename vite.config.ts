@@ -18,7 +18,6 @@ export default defineConfig({
       project: "botai-app",
     }),
   ],
-
   build: {
     sourcemap: true,
     target: "esnext",

@@ -372,21 +372,21 @@ export default function Dashboard(): React.ReactElement {
                   >
                     {command.name}
                   </td>
-                  <td className="pb-4 pt-4 grid grid-cols-3 gap-x-0.5 gap-y-0.5 max-w-32">
+                  <td className="pb-4 pt-4 space-y-1">
                     {command.inputs.map((input) => {
                       return (
-                        <span
+                        <div
                           key={input}
                           className="bg-gray-800 p-1 rounded-md truncate text-sm"
                         >
                           {input}
-                        </span>
+                        </div>
                       );
                     })}
                   </td>
-                  <td className="pb-4 pt-4 pl-1 pr-1">
+                  <td className="pb-4 pt-4 pl-1 pr-1 grow">
                     <textarea
-                      className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-blue-500 sm:text-sm p-3"
+                      className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-white-500 sm:text-sm p-3 min-h-full min-w-full overflow-hidden"
                       value={command.output ?? ""}
                       readOnly={true}
                     />
@@ -400,56 +400,58 @@ export default function Dashboard(): React.ReactElement {
                     />
                   </td>
                   <td className="pb-4 pt-4 pl-1 pr-1">
-                    <textarea
-                      className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-blue-500 sm:text-sm p-3"
-                      value={command.promptAi ?? ""}
-                      readOnly={true}
-                    />
+                    <div className="grow h-full">
+                      <textarea
+                        className="bg-gray-800 resize-none rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-white-500 sm:text-sm p-3 min-h-full min-w-full overflow-hidden"
+                        value={command.promptAi ?? ""}
+                        readOnly={true}
+                      />
+                    </div>
                   </td>
                   <td className="pb-4 pt-4">{command.priority}</td>
-                  <td className="p-2">
-                    <button
-                      className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
-                      onClick={() => {
-                        setPropsForm({
-                          mode: "update",
-                          id: command.id,
-                          sessionId: command.sessionId,
-                          name: command.name,
-                          inputs: command.inputs,
-                          output: command.output,
-                          enableAi: command.enableAi,
-                          promptAi: command.promptAi ?? "",
-                          priority: command.priority,
-                          subCommandIds: command.children.map(
-                            (child) => child.id
-                          ),
-                        });
-                        setOpenForm(true);
-                      }}
-                    >
-                      <FaEdit />
-                    </button>
-                  </td>
                   <td
-                    className={`p-2 ${
+                    className={`pb-2 pt-2 pr-2 ${
                       index === session.commands.length - 1
                         ? "rounded-br-md"
                         : ""
                     }`}
                   >
-                    <button
-                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
-                      onClick={() => {
-                        setPropsForm({
-                          mode: "delete",
-                          id: command.id,
-                        });
-                        setOpenForm(true);
-                      }}
-                    >
-                      <FaTrash />
-                    </button>
+                    <div className="flex items-center justify-center space-x-1">
+                      <button
+                        className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
+                        onClick={() => {
+                          setPropsForm({
+                            mode: "update",
+                            id: command.id,
+                            sessionId: command.sessionId,
+                            name: command.name,
+                            inputs: command.inputs,
+                            output: command.output,
+                            enableAi: command.enableAi,
+                            promptAi: command.promptAi ?? "",
+                            priority: command.priority,
+                            subCommandIds: command.children.map(
+                              (child) => child.id
+                            ),
+                          });
+                          setOpenForm(true);
+                        }}
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded-md flex items-center justify-center text-sm"
+                        onClick={() => {
+                          setPropsForm({
+                            mode: "delete",
+                            id: command.id,
+                          });
+                          setOpenForm(true);
+                        }}
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -473,102 +475,110 @@ export default function Dashboard(): React.ReactElement {
 
       <main>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex justify-between space-x-4">
-            <div className="grid grid-cols-1 gap-4 w-full">
-              <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2">
+          <div className="md:flex justify-between md:space-x-4 space-y-6 md:space-y-0">
+            <div className="w-full">
+              <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-4">
                 <h2 className="text-xl font-semibold text-black">Status</h2>
-                <p
-                  className={`${
-                    botSession &&
-                    botSession.state &&
-                    botSession.state.status === "ONLINE"
-                      ? "bg-green-400"
-                      : "bg-red-400"
-                  } text-white px-4 py-2 rounded-md shadow-md max-w-24 text-center items-center`}
-                >
-                  {botSession && botSession.state
-                    ? botSession.state.status
-                    : "OFFLINE"}
-                </p>
-                <Form
-                  method="POST"
-                  className="md:flex sm:grid-cols-1 sm:grid space-y-2 justify-start items-center"
-                >
-                  <div className="grid grid-cols-1 space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        id="enabled"
-                        name="enabled"
-                        type="checkbox"
-                        className="form-checkbox h-5 w-5 text-blue-600"
-                        defaultChecked={
-                          botSessionSSE
-                            ? botSessionSSE.enabled ?? ""
-                            : botSession.enabled ?? ""
-                        }
-                      />
-                      <label htmlFor="enabled" className="text-gray-700">
-                        Ativar Bot
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        id="enableAi"
-                        name="enableAi"
-                        type="checkbox"
-                        className="form-checkbox h-5 w-5 text-blue-600"
-                        defaultChecked={
-                          botSessionSSE
-                            ? botSessionSSE.enableAi ?? ""
-                            : botSession.enableAi ?? ""
-                        }
-                      />
-                      <label htmlFor="enableAi" className="text-gray-700">
-                        Ativar AI
-                      </label>
-                    </div>
+
+                <div className="flex">
+                  <div
+                    className={`${
+                      botSession &&
+                      botSession.state &&
+                      botSession.state.status === "ONLINE"
+                        ? "bg-green-400"
+                        : "bg-red-400"
+                    } text-white px-4 py-2 rounded-md shadow-md max-w-24 text-center items-center`}
+                  >
+                    {botSession && botSession.state
+                      ? botSession.state.status
+                      : "OFFLINE"}
                   </div>
-                  <div className="bg-gray-300 p-2 rounded-md shadow-md">
-                    <label htmlFor="promptAi" className="block text-gray-700">
-                      IA Prompt Geral
-                    </label>
-                    <textarea
-                      id="promptAi"
-                      name="promptAi"
-                      className="bg-gray-700 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 text-white"
+                </div>
+
+                <Form method="POST">
+                  <div className="space-y-4">
+                    <div className="sm:grid sm:grid-cols-1 md:flex md:space-x-8 space-y-2 justify-between items-center">
+                      <div className="space-y-2 min-w-fit">
+                        <div className="flex items-center space-x-2 grow">
+                          <input
+                            id="enabled"
+                            name="enabled"
+                            type="checkbox"
+                            className="form-checkbox h-5 w-5 text-blue-600"
+                            defaultChecked={
+                              botSessionSSE
+                                ? botSessionSSE.enabled ?? ""
+                                : botSession.enabled ?? ""
+                            }
+                          />
+                          <label htmlFor="enabled" className="text-gray-700">
+                            Ativar Bot
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            id="enableAi"
+                            name="enableAi"
+                            type="checkbox"
+                            className="form-checkbox h-5 w-5 text-blue-600"
+                            defaultChecked={
+                              botSessionSSE
+                                ? botSessionSSE.enableAi ?? ""
+                                : botSession.enableAi ?? ""
+                            }
+                          />
+                          <label htmlFor="enableAi" className="text-gray-700">
+                            Ativar AI
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-300 pl-4 pr-4 pt-2 pb-2 rounded-md shadow-md w-full min-h-fit grow">
+                        <label
+                          htmlFor="promptAi"
+                          className="block text-gray-700 font-bold"
+                        >
+                          Prompt Geral
+                        </label>
+                        <textarea
+                          id="promptAi"
+                          name="promptAi"
+                          className="bg-gray-700 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 text-white h-full w-full overflow-hidden"
+                          defaultValue={
+                            botSessionSSE
+                              ? botSessionSSE.promptAi ?? ""
+                              : botSession.promptAi ?? ""
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="max-w-24 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md shadow-md h-12"
+                    >
+                      Atualizar
+                    </button>
+
+                    <input name="type" defaultValue="session" hidden />
+                    <input
+                      name="sessionId"
                       defaultValue={
                         botSessionSSE
-                          ? botSessionSSE.promptAi ?? ""
-                          : botSession.promptAi ?? ""
+                          ? botSessionSSE.id ?? ""
+                          : botSession.id ?? ""
                       }
+                      hidden
                     />
                   </div>
-                  <button
-                    type="submit"
-                    className="max-w-24 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md shadow-md h-12"
-                  >
-                    Atualizar
-                  </button>
-
-                  <input name="type" defaultValue="session" hidden />
-                  <input
-                    name="sessionId"
-                    defaultValue={
-                      botSessionSSE
-                        ? botSessionSSE.id ?? ""
-                        : botSession.id ?? ""
-                    }
-                    hidden
-                  />
                 </Form>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 min-w-fit">
-              <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2">
-                <h2 className="text-xl font-semibold text-black">QRCode</h2>
-                {qrCode()}
-              </div>
+            <div className="bg-gray-200 p-4 rounded-md shadow-md space-y-2 min-w-fit h-full">
+              <h2 className="text-xl font-semibold text-black">QRCode</h2>
+              {qrCode()}
             </div>
           </div>
 
@@ -592,13 +602,12 @@ export default function Dashboard(): React.ReactElement {
                 <thead className="bg-gray-900">
                   <tr>
                     <th className="p-4 rounded-tl-md">Nome</th>
-                    <th className="p-2 max-w-32">Comandos</th>
+                    <th className="p-2">Comandos</th>
                     <th className="p-2">Resposta</th>
                     <th className="p-2">IA</th>
-                    <th className="p-2">IA Prompt Mini</th>
-                    <th className="p-2">Prioridade</th>
-                    <th className="p-2"></th>
-                    <th className="p-4 rounded-tr-md"></th>
+                    <th className="p-2">Mini Prompt</th>
+                    <th className="p-2">PR</th>
+                    <th className="pb-2 pt-2 pr-2 rounded-tr-md"></th>
                   </tr>
                 </thead>
                 {commandsTableBody(botSessionSSE ?? botSession)}
@@ -634,7 +643,7 @@ export default function Dashboard(): React.ReactElement {
         />
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div className="flex min-h-full justify-center p-4 text-center items-center sm:p-0">
             <DialogPanel
               transition
               className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95"

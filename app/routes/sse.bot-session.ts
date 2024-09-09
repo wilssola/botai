@@ -7,39 +7,21 @@ import { logger } from "~/logger";
 
 export const BOT_SESSION_SSE_EVENT = "bot-session";
 
-const SEND_INTERVAL = 2000;
+const SEND_INTERVAL = 1000;
 
-/**
- * Loader function for the bot session SSE route.
- *
- * @param {LoaderFunctionArgs} context - The context object containing the request.
- * @param {Request} context.request - The request object.
- * @returns The event stream response.
- */
-export const loader: LoaderFunction = async ({
-  request,
-}: LoaderFunctionArgs) => {
-  // Get the user session
-  const user = await getUserSession(request);
-  if (!user) {
-    return "";
-  }
-
+export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
   const controller = new AbortController();
-  request.signal.addEventListener("abort", () => controller.abort());
+  const abortListener = () => controller.abort();
+  request.signal.addEventListener("abort", abortListener);
 
   return eventStream(controller.signal, (send, abort) => {
-    /**
-     * Function to run the SSE stream.
-     */
     async function run() {
+      const user = await getUserSession(request);
+
       if (!user) {
-        abort();
         return "";
       }
 
-      // Send bot session data at regular intervals
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for await (const _ of interval(SEND_INTERVAL, {
         signal: controller.signal,
       })) {
@@ -49,7 +31,6 @@ export const loader: LoaderFunction = async ({
         }
 
         try {
-          // Send the bot session data as an SSE event
           send({
             event: BOT_SESSION_SSE_EVENT,
             data: JSON.stringify(botSession),
@@ -60,13 +41,12 @@ export const loader: LoaderFunction = async ({
       }
     }
 
-    // Run the SSE stream
     run().then(() => {
       logger.info("Bot session SSE stream completed");
     });
 
-    // Cleanup function for the event stream
     return function clear() {
+      request.signal.removeEventListener("abort", abortListener);
       controller.abort();
     };
   });

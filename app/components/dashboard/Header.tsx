@@ -79,12 +79,12 @@ export default function Header(props: HeaderProps): ReactElement {
                     >
                       {userNavigation.map((item) => (
                         <MenuItem key={item.name}>
-                          <a
-                            href={item.href}
+                          <NavLink
+                            to={item.href}
                             className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100"
                           >
                             {item.name}
-                          </a>
+                          </NavLink>
                         </MenuItem>
                       ))}
                     </MenuItems>
@@ -115,7 +115,7 @@ export default function Header(props: HeaderProps): ReactElement {
                   key={item.name}
                   as="a"
                   href={item.href}
-                  className="block rounded-md px-3 py-2 text-base font-medium"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-white"
                 >
                   {item.name}
                 </DisclosureButton>

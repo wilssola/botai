@@ -504,7 +504,7 @@ function handleBotProcess() {
    */
   process.on("uncaughtException", async (error) => {
     await stopBots();
-    logger.warn(`Uncaught exception: ${error}`);
+    logger.error(`Uncaught exception: ${error}`);
     process.exit(1);
   });
 }
