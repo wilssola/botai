@@ -1,9 +1,9 @@
-import {createRequestHandler} from "@remix-run/express";
-import {ServerBuild} from "@remix-run/node";
+import { createRequestHandler } from "@remix-run/express";
+import { ServerBuild } from "@remix-run/node";
 import compression from "compression";
 import express from "express";
 import rateLimit from "express-rate-limit";
-import {slowDown} from "express-slow-down";
+import { slowDown } from "express-slow-down";
 import helmet from "helmet";
 import morgan from "morgan";
 
@@ -68,7 +68,12 @@ app.use(
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "script-src": ["'self'", "'unsafe-inline'", "https://*.hcaptcha.com"],
+        "script-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://*.hcaptcha.com",
+          "https://*.sentry.io",
+        ],
         "style-src": ["'self'", "'unsafe-inline'", "https://*.hcaptcha.com"],
         "connect-src": [
           "'self'",
