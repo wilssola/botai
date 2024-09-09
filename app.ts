@@ -68,31 +68,17 @@ app.use(
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "script-src": [
-          "'self'",
-          "'unsafe-inline'",
-          "https://hcaptcha.com",
-          "https://*.hcaptcha.com",
-        ],
-        "style-src": [
-          "'self'",
-          "'unsafe-inline'",
-          "https://hcaptcha.com",
-          "https://*.hcaptcha.com",
-        ],
+        "script-src": ["'self'", "'unsafe-inline'", "https://*.hcaptcha.com"],
+        "style-src": ["'self'", "'unsafe-inline'", "https://*.hcaptcha.com"],
         "connect-src": [
           "'self'",
-          "https://hcaptcha.com",
           "https://*.hcaptcha.com",
           "https://*.sentry.io",
           process.env.NODE_ENV !== "production" ? `ws://localhost:*` : "",
         ],
-        "frame-src": [
-          "'self'",
-          "https://hcaptcha.com",
-          "https://*.hcaptcha.com",
-        ],
+        "frame-src": ["'self'", "https://*.hcaptcha.com"],
         "worker-src": ["'self'", "blob:"],
+        "img-src": ["'self'", "data:", "https://*.gravatar.com"],
       },
     },
   })

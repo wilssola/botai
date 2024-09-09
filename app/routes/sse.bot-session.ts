@@ -3,7 +3,6 @@ import { eventStream } from "remix-utils/sse/server";
 import { interval } from "remix-utils/timers";
 import { getUserSession } from "~/services/auth.server";
 import { getBotSessionByUserId } from "~/models/bot.server";
-import { logger } from "~/logger";
 
 export const BOT_SESSION_SSE_EVENT = "bot-session";
 
@@ -28,16 +27,12 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
         return "";
       }
 
-      // Get the bot session for the user
-      let botSession = await getBotSessionByUserId(user.id, request);
-
       // Send bot session data at regular intervals
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for await (const _ of interval(SEND_INTERVAL, {
         signal: request.signal,
       })) {
-        botSession = await getBotSessionByUserId(user.id, request);
-
+        const botSession = await getBotSessionByUserId(user.id, request);
         if (!botSession) {
           return "";
         }
@@ -51,7 +46,7 @@ export const loader: LoaderFunction = ({ request }: LoaderFunctionArgs) => {
     }
 
     // Run the SSE stream and log when it ends
-    run().then(() => logger.info("Bot session SSE stream ended"));
+    run();
 
     // Cleanup function for the event stream
     return async () => {};

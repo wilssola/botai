@@ -13,7 +13,6 @@ import { BOT_SESSION_SSE_EVENT } from "~/routes/sse.bot-session";
 import { getUserSession, UserSession } from "~/services/auth.server";
 import { checkMailAuthVerified } from "~/models/mail.server";
 import { Form, json, useActionData, useLoaderData } from "@remix-run/react";
-import Header from "~/components/dashboard/Header";
 import {
   BotSessionFull,
   createBotCommandBySessionId,
@@ -44,6 +43,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
+import Header from "~/components/dashboard/Header";
 
 type LoaderData = {
   user: UserSession;
@@ -65,7 +65,7 @@ export const loader: LoaderFunction = async ({
 
   const user = await getUserSession(request);
   if (!user) {
-    logger.info("User not found, redirecting to login page");
+    logger.warn("User not found, redirecting to login page");
     return redirect(LOGIN_PATH, HTTPStatus.UNAUTHORIZED);
   }
 
@@ -77,6 +77,7 @@ export const loader: LoaderFunction = async ({
     botSession = await createBotSessionByUserId(user!.id);
   }
 
+  logger.info(`Successfully loaded dashboard for user ${user!.id}`);
   return json({ user, botSession });
 };
 
@@ -273,11 +274,13 @@ export default function Dashboard(): React.ReactElement {
   const { user, botSession } = useLoaderData<LoaderData>();
   const actionData = useActionData<ResponseActionData>();
 
-  const botSessionSSE = JSON.parse(
-    useEventSource(BOT_SESSION_SSE_PATH, {
-      event: BOT_SESSION_SSE_EVENT,
-    }) ?? "{}"
-  ) as BotSessionFull;
+  const botSessionSourceSSE = useEventSource(BOT_SESSION_SSE_PATH, {
+    event: BOT_SESSION_SSE_EVENT,
+  });
+
+  const [botSessionSSE, setBotSessionSSE] = useState<
+    BotSessionFull | undefined
+  >();
 
   useEffect(() => {
     if (!socket) {
@@ -294,6 +297,12 @@ export default function Dashboard(): React.ReactElement {
     setOpenAlert(actionData !== undefined);
   }, [actionData]);
 
+  useEffect(() => {
+    setBotSessionSSE(
+      botSessionSourceSSE ? JSON.parse(botSessionSourceSSE) : null
+    );
+  }, [botSessionSourceSSE]);
+
   const [openForm, setOpenForm] = useState(false);
   const [propsForm, setPropsForm] =
     useState<Omit<BotCommandModalFormProps, "open" | "setOpen">>();
@@ -307,7 +316,11 @@ export default function Dashboard(): React.ReactElement {
           <div className="flex items-center justify-center space-x-5">
             <div className="p-2 bg-white rounded-md shadow-md">
               <QRCodeSVG
-                value={botSessionSSE.whatsappQr ?? botSession.whatsappQr ?? ""}
+                value={
+                  botSessionSSE
+                    ? botSessionSSE.whatsappQr ?? ""
+                    : botSession.whatsappQr ?? ""
+                }
                 title="WhatsApp QRCode"
               ></QRCodeSVG>
             </div>
@@ -316,7 +329,11 @@ export default function Dashboard(): React.ReactElement {
 
           <TokenInput
             buttonClassName="bg-gray-700 hover:bg-gray-800"
-            value={botSessionSSE.whatsappQr ?? botSession.whatsappQr ?? ""}
+            value={
+              botSessionSSE
+                ? botSessionSSE.whatsappQr ?? ""
+                : botSession.whatsappQr ?? ""
+            }
           />
         </div>
       </>
@@ -325,7 +342,7 @@ export default function Dashboard(): React.ReactElement {
 
   return (
     <>
-      <Header user={user as UserSession} />
+      <Header id={user?.id} email={user?.email} username={user?.username} />
 
       <main>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
@@ -351,11 +368,14 @@ export default function Dashboard(): React.ReactElement {
                   <div className="grid grid-cols-1 space-y-2">
                     <div className="flex items-center space-x-2">
                       <input
+                        id="enabled"
                         name="enabled"
                         type="checkbox"
                         className="form-checkbox h-5 w-5 text-blue-600"
                         defaultChecked={
-                          botSessionSSE.enabled ?? botSession.enabled ?? false
+                          botSessionSSE
+                            ? botSessionSSE.enabled ?? ""
+                            : botSession.enabled ?? ""
                         }
                       />
                       <label htmlFor="enabled" className="text-gray-700">
@@ -364,11 +384,14 @@ export default function Dashboard(): React.ReactElement {
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
+                        id="enableAi"
                         name="enableAi"
                         type="checkbox"
                         className="form-checkbox h-5 w-5 text-blue-600"
                         defaultChecked={
-                          botSessionSSE.enableAi ?? botSession.enableAi ?? false
+                          botSessionSSE
+                            ? botSessionSSE.enableAi ?? ""
+                            : botSession.enableAi ?? ""
                         }
                       />
                       <label htmlFor="enableAi" className="text-gray-700">
@@ -381,10 +404,13 @@ export default function Dashboard(): React.ReactElement {
                       IA Prompt Geral
                     </label>
                     <textarea
+                      id="promptAi"
                       name="promptAi"
                       className="bg-gray-700 resize-none rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 text-white"
                       defaultValue={
-                        botSessionSSE.promptAi ?? botSession.promptAi ?? ""
+                        botSessionSSE
+                          ? botSessionSSE.promptAi ?? ""
+                          : botSession.promptAi ?? ""
                       }
                     />
                   </div>
@@ -398,7 +424,11 @@ export default function Dashboard(): React.ReactElement {
                   <input name="type" defaultValue="session" hidden />
                   <input
                     name="sessionId"
-                    defaultValue={botSessionSSE.id ?? botSession.id}
+                    defaultValue={
+                      botSessionSSE
+                        ? botSessionSSE.id ?? ""
+                        : botSession.id ?? ""
+                    }
                     hidden
                   />
                 </Form>

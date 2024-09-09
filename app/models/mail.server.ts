@@ -69,19 +69,24 @@ export async function checkMailAuthVerified(
   // Retrieve the user session
   const user = await getUserSession(request);
   if (!user) {
+    logger.warn("User is not authenticated");
+    logger.warn("Redirecting to login page");
     throw redirect(LOGIN_PATH);
   }
 
   // Retrieve the mail authentication object
   const mailAuth = await getUserMailAuthById(user.id);
   if (!mailAuth || !mailAuth.verified) {
+    logger.warn("User email is not verified");
+    logger.warn("Redirecting to email verification page");
     throw redirect(VERIFY_EMAIL_PATH);
   }
 }
 
 // SMTP configuration from environment variables
 const SMTP_SETUP =
-  process.env.SMTP_HOST ||
-  process.env.SMTP_PORT ||
-  process.env.MAIL_USER ||
+  process.env.NODE_ENV === "production" &&
+  process.env.SMTP_HOST &&
+  process.env.SMTP_PORT &&
+  process.env.MAIL_USER &&
   process.env.MAIL_PASS;

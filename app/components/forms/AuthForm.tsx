@@ -24,19 +24,20 @@ type AuthFormProps = {
  */
 export default function AuthForm(props: AuthFormProps): ReactElement {
   return (
-    <div className="flex w-screen h-screen items-center justify-center px-6 py-12 lg:px-8 bg-gradient-to-r from-blue-200 to-blue-300">
+    <div className="flex w-screen h-screen items-center justify-center px-6 py-12 lg:px-8 bg-gradient-to-r from-blue-400 to-blue-900">
       <div className="bg-white shadow-lg rounded-lg p-8 flex flex-col items-center space-y-6">
         <div className="flex items-center space-x-4">
           <div className="h-10 w-auto flex items-center">
             <Logo />
           </div>
           <h2 className="text-2xl font-semibold leading-9 tracking-tight text-gray-900 flex items-center">
-            {props.mode === "login"
-              ? "Acesse sua conta" // Display text for login mode
-              : props.mode === "register"
-              ? "Crie sua conta" // Display text for register mode
-              : "Recupere sua senha"}{" "}
-            // Display text for forgot-password mode
+            {
+              props.mode === "login"
+                ? "Acesse sua conta" // Display text for login mode
+                : props.mode === "register"
+                ? "Crie sua conta" // Display text for register mode
+                : "Recupere sua senha" // Display text for forgot-password mode
+            }
           </h2>
         </div>
 
@@ -94,12 +95,13 @@ export default function AuthForm(props: AuthFormProps): ReactElement {
               type="submit"
               className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
             >
-              {props.mode === "login"
-                ? "Logar" // Button text for login mode
-                : props.mode === "register"
-                ? "Cadastrar" // Button text for register mode
-                : "Recuperar"}{" "}
-              // Button text for forgot-password mode
+              {
+                props.mode === "login"
+                  ? "Logar" // Button text for login mode
+                  : props.mode === "register"
+                  ? "Cadastrar" // Button text for register mode
+                  : "Recuperar" // Button text for forgot-password mode
+              }
             </button>
 
             {props.hCaptchaSiteKey && (
@@ -117,12 +119,13 @@ export default function AuthForm(props: AuthFormProps): ReactElement {
         </Form>
 
         <p className="text-center text-sm text-gray-500">
-          {props.mode === "login"
-            ? "Não tem uma conta?" // Text for login mode
-            : props.mode === "register"
-            ? "Já tem uma conta?" // Text for register mode
-            : "Lembrou sua senha?"}{" "}
-          // Text for forgot-password mode
+          {
+            props.mode === "login"
+              ? "Não tem uma conta?" // Text for login mode
+              : props.mode === "register"
+              ? "Já tem uma conta?" // Text for register mode
+              : "Lembrou sua senha?" // Text for forgot-password mode
+          }
           <Link
             to={
               props.mode === "register" || props.mode === "forgot-password"
@@ -131,10 +134,11 @@ export default function AuthForm(props: AuthFormProps): ReactElement {
             }
             className="ml-2 font-semibold leading-6 text-blue-500 hover:text-blue-600"
           >
-            {props.mode === "register" || props.mode === "forgot-password"
-              ? "Logar" // Link text for register or forgot-password mode
-              : "Cadastrar"}{" "}
-            // Link text for login mode
+            {
+              props.mode === "register" || props.mode === "forgot-password"
+                ? "Logar" // Link text for register or forgot-password mode
+                : "Cadastrar" // Link text for login mode
+            }
           </Link>
         </p>
       </div>

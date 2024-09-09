@@ -1,4 +1,5 @@
 import {auth} from "~/services/auth.server";
+import {logger} from "~/logger";
 
 /**
  * Loads the session and handles redirection based on authentication status.
@@ -16,6 +17,8 @@ export default async function sessionLoader(
     failureRedirect?: string;
   }
 ): Promise<void> {
+  logger.info("Checking session");
+
   // Check if the user is authenticated and handle redirection
   await auth.isAuthenticated(request, {
     successRedirect: options.successRedirect ?? "",

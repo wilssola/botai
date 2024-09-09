@@ -13,7 +13,7 @@ export async function verifyHCaptcha(
   remoteIp: string | null
 ): Promise<boolean> {
   // If not in production or the hCaptcha secret is not set, return true for development purposes
-  if (process.env.NODE_ENV !== "production" || !process.env.HCAPTCHA_SECRET) {
+  if (!HCAPTCHA_SETUP) {
     return true;
   }
 
@@ -40,3 +40,6 @@ export async function verifyHCaptcha(
   // Return the success status from the hCaptcha API response
   return data.success as boolean;
 }
+
+const HCAPTCHA_SETUP =
+  process.env.NODE_ENV === "production" && process.env.HCAPTCHA_SECRET;
