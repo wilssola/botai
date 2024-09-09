@@ -128,18 +128,6 @@ async function startBot(bot: BotState): Promise<void> {
       },
       // The callback for when a message is received.
       async (message, client) => {
-        /*await storeBotMessage(
-                                                                          bot.sessionId,
-                                                                          message.messages.map((m) => {
-                                                                            return {
-                                                                              id: m.key.id ?? "",
-                                                                              senderId: m.key.remoteJid ?? "",
-                                                                              fromMe: m.key.fromMe ?? false,
-                                                                              message: m.message?.conversation ?? "",
-                                                                            };
-                                                                          })
-                                                                        );*/
-
         // Get the last message from the message list.
         const lastMessage = message.messages[0];
 
@@ -299,7 +287,7 @@ async function sendBotMessage(
       message,
       sendFunction,
       "default",
-      "",
+      null,
       session.enableAi,
       session.promptAi
     );
@@ -322,7 +310,7 @@ async function handleBotResponse(
   message: string,
   sendFunction: (response: string) => Promise<void>,
   commandId: string | "default",
-  output?: string,
+  output?: string | null,
   enableAi?: boolean,
   promptAi?: string | null
 ): Promise<void> {
