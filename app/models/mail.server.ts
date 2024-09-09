@@ -1,11 +1,14 @@
-import {MailAuth, User} from "@prisma/client";
-import {getUserMailAuthById, updateUserMailAuthCodeById,} from "~/models/user.server";
-import {APP_NAME, MAX_EMAIL_CODE_TIME} from "~/constants";
-import {sendMail} from "~/services/mailer.server";
-import {redirect} from "@remix-run/node";
-import {getUserSession} from "~/services/auth.server";
-import {LOGIN_PATH, VERIFY_EMAIL_PATH} from "~/routes";
-import {logger} from "~/logger";
+import { MailAuth, User } from "@prisma/client";
+import {
+  getUserMailAuthById,
+  updateUserMailAuthCodeById,
+} from "~/models/user.server";
+import { APP_NAME, MAX_EMAIL_CODE_TIME } from "~/constants";
+import { sendMail } from "~/services/mailer.server";
+import { redirect } from "@remix-run/node";
+import { getUserSession } from "~/services/auth.server";
+import { LOGIN_PATH, VERIFY_EMAIL_PATH } from "~/routes";
+import { logger } from "~/logger";
 
 /**
  * Sends a mail authentication verification email to the user.
@@ -35,9 +38,11 @@ export async function sendMailAuthVerification(
     mailAuth &&
     mailAuth.updatedAt.getTime() + MAX_EMAIL_CODE_TIME < Date.now()
   ) {
+    logger.info(`Mail auth code for user ${user.id} has expired`);
     // Update the mail authentication code
     mailAuth = await updateUserMailAuthCodeById(user.id);
 
+    logger.info(`Sending mail auth verification email to user ${user.id}`);
     // Send the verification email
     await sendMail(
       user.email,
@@ -85,7 +90,6 @@ export async function checkMailAuthVerified(
 
 // SMTP configuration from environment variables
 const SMTP_SETUP =
-  process.env.NODE_ENV === "production" &&
   process.env.SMTP_HOST &&
   process.env.SMTP_PORT &&
   process.env.MAIL_USER &&

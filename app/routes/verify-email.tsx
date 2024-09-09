@@ -1,16 +1,26 @@
-import {ActionFunction, LoaderFunction, MetaFunction, redirect,} from "@remix-run/node";
-import {getUserSession} from "~/services/auth.server";
-import {HTTPStatus} from "~/enums/http-status";
-import {DASHBOARD_PATH, LOGIN_PATH, VERIFY_EMAIL_PATH} from "~/routes";
-import {createUserMailAuthCodeById, getUserMailAuthById, updateUserEmailAuthVerifiedById,} from "~/models/user.server";
-import {defaultMeta} from "~/utils/default-meta";
+import {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+  redirect,
+} from "@remix-run/node";
+import { getUserSession } from "~/services/auth.server";
+import { HTTPStatus } from "~/enums/http-status";
+import { DASHBOARD_PATH, LOGIN_PATH, VERIFY_EMAIL_PATH } from "~/routes";
+import {
+  createUserMailAuthCodeById,
+  getUserMailAuthById,
+  updateUserEmailAuthVerifiedById,
+} from "~/models/user.server";
+import { defaultMeta } from "~/utils/default-meta";
 import MailAuthForm from "~/components/forms/MailAuthForm";
-import {json, useActionData} from "@remix-run/react";
-import {ResponseActionData} from "~/types/response-action-data";
-import {z} from "zod";
-import {ServerRuntimeMetaDescriptor} from "@remix-run/server-runtime";
+import { json, useActionData } from "@remix-run/react";
+import { ResponseActionData } from "~/types/response-action-data";
+import { z } from "zod";
+import { ServerRuntimeMetaDescriptor } from "@remix-run/server-runtime";
 import React from "react";
-import {sendMailAuthVerification} from "~/models/mail.server";
+import { sendMailAuthVerification } from "~/models/mail.server";
+import { logger } from "~/logger";
 
 /**
  * Meta function to set the default meta tags for the verify email page.
@@ -37,11 +47,13 @@ export const loader: LoaderFunction = async ({
 
   let mailAuth = await getUserMailAuthById(user.id);
   if (!mailAuth) {
+    logger.info(`Creating new mail auth code for user ${user.id}`);
     mailAuth = await createUserMailAuthCodeById(user.id);
   }
 
   mailAuth = await sendMailAuthVerification(user, mailAuth);
   if (mailAuth && mailAuth.verified) {
+    logger.info(`User ${user.id} email is already verified`);
     return redirect(DASHBOARD_PATH);
   }
 
